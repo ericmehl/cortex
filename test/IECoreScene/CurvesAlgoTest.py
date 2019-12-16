@@ -101,7 +101,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		return testObject
 
-	def testBSplineCurvesConstantToVertex( self ) :
+	def testBSplineCurvesConstantToVertexAverage( self ) :
 
 		curves = self.curvesBSpline()
 		p = curves["a"]
@@ -110,7 +110,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 16 ) )
 
-	def testBSplineCurvesConstantToUniform( self ) :
+	def testBSplineCurvesConstantToUniformAverage( self ) :
 
 		curves = self.curvesBSpline()
 		p = curves["a"]
@@ -119,7 +119,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 2 ) )
 
-	def testBSplineCurvesConstantToVarying( self ) :
+	def testBSplineCurvesConstantToVaryingAverage( self ) :
 
 		curves = self.curvesBSpline()
 		p = curves["a"]
@@ -128,7 +128,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Varying )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 12 ) )
 
-	def testBSplineCurvesConstantToFaceVarying( self ) :
+	def testBSplineCurvesConstantToFaceVaryingAverage( self ) :
 
 		curves = self.curvesBSpline()
 		p = curves["a"]
@@ -137,7 +137,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 12 ) )
 
-	def testBSplineCurvesVertexToConstant( self ) :
+	def testBSplineCurvesVertexToConstantAverage( self ) :
 
 		curves = self.curvesBSpline()
 		p = curves["b"]
@@ -146,14 +146,14 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,16))/16. ) )
 
-	def testBSplineCurvesVertexToUniform( self ) :
+	def testBSplineCurvesVertexToUniformAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,8))/8., sum(range(8,16))/8. ] ) )
 
-	def testBSplineCurvesVertexToVarying( self ) :
+	def testBSplineCurvesVertexToVaryingAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -162,7 +162,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		for i in range( 0, p.data.size() ) :
 			self.assertAlmostEqual( p.data[i], expected[i], 5 )
 
-	def testBSplineCurvesVertexToFaceVarying( self ) :
+	def testBSplineCurvesVertexToFaceVaryingAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -172,7 +172,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		for i in range( 0, p.data.size() ) :
 			self.assertAlmostEqual( p.data[i], expected[i], 5 )
 
-	def testBSplineCurvesUniformToConstant( self ) :
+	def testBSplineCurvesUniformToConstantAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -180,7 +180,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,2))/2. ) )
 
-	def testBSplineCurvesUniformToVertex( self ) :
+	def testBSplineCurvesUniformToVertexAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -198,7 +198,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		self.assertEqual( actual, expected )
 
-	def testBSplineCurvesUniformToVarying( self ) :
+	def testBSplineCurvesUniformToVaryingAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -216,7 +216,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		self.assertEqual( actual, expected )
 
-	def testBSplineCurvesUniformToFaceVarying( self ) :
+	def testBSplineCurvesUniformToFaceVaryingAverage( self ) :
 
 		curves = self.curvesBSpline()
 		p = curves["c"]
@@ -235,7 +235,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		self.assertEqual( actual, expected )
 
-	def testBSplineCurvesVaryingToConstant( self ) :
+	def testBSplineCurvesVaryingToConstantAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -243,7 +243,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,12))/12. ) )
 
-	def testBSplineCurvesVaryingToVertex( self ) :
+	def testBSplineCurvesVaryingToVertexAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -261,7 +261,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		self.assertEqual( actual, expected )
 
-	def testBSplineCurvesVaryingToUniform( self ) :
+	def testBSplineCurvesVaryingToUniformAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -279,7 +279,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		self.assertEqual( actual, expected )
 
-	def testBSplineCurvesVaryingToFaceVarying( self ) :
+	def testBSplineCurvesVaryingToFaceVaryingAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -297,7 +297,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		self.assertEqual( actual, expected )
 
-	def testBSplineCurvesFaceVaryingToConstant( self ) :
+	def testBSplineCurvesFaceVaryingToConstantAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -305,7 +305,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,12))/12. ) )
 
-	def testBSplineCurvesFaceVaryingToVertex( self ) :
+	def testBSplineCurvesFaceVaryingToVertexAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -323,7 +323,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		self.assertEqual( actual, expected )
 
-	def testBSplineCurvesFaceVaryingToUniform( self ) :
+	def testBSplineCurvesFaceVaryingToUniformAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -331,7 +331,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,6))/6., sum(range(6,12))/6. ] ) )
 
-	def testBSplineCurvesFaceVaryingToVarying( self ) :
+	def testBSplineCurvesFaceVaryingToVaryingAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -349,7 +349,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		self.assertEqual( actual, expected )
 
-	def testBSplineCurvesIndexedVertexToUniform( self ) :
+	def testBSplineCurvesIndexedVertexToUniformAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["f"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -357,19 +357,19 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.875, 1 ] ) )
 		self.assertEqual( p.indices, None )
 
-	def testBSplineCurvesIndexedVertexToVarying( self ) :
+	def testBSplineCurvesIndexedVertexToVaryingAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["f"]
 
 		self.assertRaises( RuntimeError, IECoreScene.CurvesAlgo.resamplePrimitiveVariable, curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying )
 
-	def testBSplineCurvesIndexedVertexToFaceVarying( self ) :
+	def testBSplineCurvesIndexedVertexToFaceVaryingAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["f"]
 
 		self.assertRaises( RuntimeError, IECoreScene.CurvesAlgo.resamplePrimitiveVariable, curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 
-	def testBSplineCurvesIndexedUniformToVertex( self ) :
+	def testBSplineCurvesIndexedUniformToVertexAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["g"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -378,7 +378,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.data, IECore.FloatVectorData( range( 0, 3 ) ) )
 		self.assertEqual( p.indices, IECore.IntVectorData( ( [ 0 ] * 8 ) + ( [ 1 ] * 8 ) ) )
 
-	def testBSplineCurvesIndexedUniformToVarying( self ) :
+	def testBSplineCurvesIndexedUniformToVaryingAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["g"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -387,7 +387,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.data, IECore.FloatVectorData( range( 0, 3 ) ) )
 		self.assertEqual( p.indices, IECore.IntVectorData( ( [ 0 ] * 6 ) + ( [ 1 ] * 6 ) ) )
 
-	def testBSplineCurvesIndexedUniformToFaceVarying( self ) :
+	def testBSplineCurvesIndexedUniformToFaceVaryingAverage( self ) :
 
 		curves = self.curvesBSpline()
 		p = curves["g"]
@@ -397,13 +397,13 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.data, IECore.FloatVectorData( range( 0, 3 ) ) )
 		self.assertEqual( p.indices, IECore.IntVectorData( ( [ 0 ] * 6 ) + ( [ 1 ] * 6 ) ) )
 
-	def testBSplineCurvesIndexedVaryingToVertex( self ) :
+	def testBSplineCurvesIndexedVaryingToVertexAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["h"]
 
 		self.assertRaises( RuntimeError, IECoreScene.CurvesAlgo.resamplePrimitiveVariable, curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 
-	def testBSplineCurvesIndexedVaryingToUniform( self ) :
+	def testBSplineCurvesIndexedVaryingToUniformAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["h"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -412,7 +412,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 1, 1 ] ) )
 		self.assertEqual( p.indices, None )
 
-	def testBSplineCurvesIndexedVaryingToFaceVarying( self ) :
+	def testBSplineCurvesIndexedVaryingToFaceVaryingAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["h"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -421,13 +421,13 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.data, IECore.FloatVectorData( range( 0, 3 ) ) )
 		self.assertEqual( p.indices, IECore.IntVectorData( [ 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2 ] ) )
 
-	def testBSplineCurvesIndexedFaceVaryingToVertex( self ) :
+	def testBSplineCurvesIndexedFaceVaryingToVertexAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["i"]
 
 		self.assertRaises( RuntimeError, IECoreScene.CurvesAlgo.resamplePrimitiveVariable, curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 
-	def testBSplineCurvesIndexedFaceVaryingToUniform( self ) :
+	def testBSplineCurvesIndexedFaceVaryingToUniformAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["i"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -436,7 +436,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 1, 1 ] ) )
 		self.assertEqual( p.indices, None )
 
-	def testBSplineCurvesIndexedFaceVaryingToVarying( self ) :
+	def testBSplineCurvesIndexedFaceVaryingToVaryingAverage( self ) :
 		curves = self.curvesBSpline()
 		p = curves["i"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -488,7 +488,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		return testObject
 
-	def testCatmullRomCurvesConstantToVertex( self ) :
+	def testCatmullRomCurvesConstantToVertexAverage( self ) :
 
 		curves = self.curvesCatmullRom()
 		p = curves["a"]
@@ -497,7 +497,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 16 ) )
 
-	def testCatmullRomCurvesConstantToUniform( self ) :
+	def testCatmullRomCurvesConstantToUniformAverage( self ) :
 
 		curves = self.curvesCatmullRom()
 		p = curves["a"]
@@ -506,7 +506,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 2 ) )
 
-	def testCatmullRomCurvesConstantToVarying( self ) :
+	def testCatmullRomCurvesConstantToVaryingAverage( self ) :
 
 		curves = self.curvesCatmullRom()
 		p = curves["a"]
@@ -515,7 +515,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Varying )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 12 ) )
 
-	def testCatmullRomCurvesConstantToFaceVarying( self ) :
+	def testCatmullRomCurvesConstantToFaceVaryingAverage( self ) :
 
 		curves = self.curvesCatmullRom()
 		p = curves["a"]
@@ -524,7 +524,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 12 ) )
 
-	def testCatmullRomCurvesVertexToConstant( self ) :
+	def testCatmullRomCurvesVertexToConstantAverage( self ) :
 
 		curves = self.curvesCatmullRom()
 		p = curves["b"]
@@ -533,14 +533,14 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,16))/16. ) )
 
-	def testCatmullRomCurvesVertexToUniform( self ) :
+	def testCatmullRomCurvesVertexToUniformAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,8))/8., sum(range(8,16))/8. ] ) )
 
-	def testCatmullRomCurvesVertexToVarying( self ) :
+	def testCatmullRomCurvesVertexToVaryingAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -549,7 +549,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		for i in range( 0, p.data.size() ) :
 			self.assertAlmostEqual( p.data[i], expected[i], 5 )
 
-	def testCatmullRomCurvesVertexToFaceVarying( self ) :
+	def testCatmullRomCurvesVertexToFaceVaryingAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -559,7 +559,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		for i in range( 0, p.data.size() ) :
 			self.assertAlmostEqual( p.data[i], expected[i], 5 )
 
-	def testCatmullRomCurvesUniformToConstant( self ) :
+	def testCatmullRomCurvesUniformToConstantAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -567,7 +567,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,2))/2. ) )
 
-	def testCatmullRomCurvesUniformToVertex( self ) :
+	def testCatmullRomCurvesUniformToVertexAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -575,7 +575,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( ( [ 0 ] * 8 ) + ( [ 1 ] * 8 ) ) )
 
-	def testCatmullRomCurvesUniformToVarying( self ) :
+	def testCatmullRomCurvesUniformToVaryingAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -583,7 +583,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Varying )
 		self.assertEqual( p.data, IECore.FloatVectorData( ( [ 0 ] * 6 ) + ( [ 1 ] * 6 ) ) )
 
-	def testCatmullRomCurvesUniformToFaceVarying( self ) :
+	def testCatmullRomCurvesUniformToFaceVaryingAverage( self ) :
 
 		curves = self.curvesCatmullRom()
 		p = curves["c"]
@@ -592,7 +592,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( ( [ 0 ] * 6 ) + ( [ 1 ] * 6 ) ) )
 
-	def testCatmullRomCurvesVaryingToConstant( self ) :
+	def testCatmullRomCurvesVaryingToConstantAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -600,7 +600,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,12))/12. ) )
 
-	def testCatmullRomCurvesVaryingToVertex( self ) :
+	def testCatmullRomCurvesVaryingToVertexAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -608,7 +608,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0, 0.625, 1.25, 1.875, 2.5, 3.125, 3.75, 4.375, 6, 6.625, 7.25, 7.875, 8.5, 9.125, 9.75, 10.375 ] ) )
 
-	def testCatmullRomCurvesVaryingToUniform( self ) :
+	def testCatmullRomCurvesVaryingToUniformAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -616,7 +616,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,6))/6., sum(range(6,12))/6. ] ) )
 
-	def testCatmullRomCurvesVaryingToFaceVarying( self ) :
+	def testCatmullRomCurvesVaryingToFaceVaryingAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -624,7 +624,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( range( 0, 12 ) ) )
 
-	def testCatmullRomCurvesFaceVaryingToConstant( self ) :
+	def testCatmullRomCurvesFaceVaryingToConstantAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -632,7 +632,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,12))/12. ) )
 
-	def testCatmullRomCurvesFaceVaryingToVertex( self ) :
+	def testCatmullRomCurvesFaceVaryingToVertexAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -640,7 +640,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0, 0.625, 1.25, 1.875, 2.5, 3.125, 3.75, 4.375, 6, 6.625, 7.25, 7.875, 8.5, 9.125, 9.75, 10.375 ] ) )
 
-	def testCatmullRomCurvesFaceVaryingToUniform( self ) :
+	def testCatmullRomCurvesFaceVaryingToUniformAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -648,7 +648,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,6))/6., sum(range(6,12))/6. ] ) )
 
-	def testCatmullRomCurvesFaceVaryingToVarying( self ) :
+	def testCatmullRomCurvesFaceVaryingToVaryingAverage( self ) :
 		curves = self.curvesCatmullRom()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -688,7 +688,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		return testObject
 
-	def testLinearCurvesConstantToVertex( self ) :
+	def testLinearCurvesConstantToVertexAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["a"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
@@ -696,7 +696,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 4 ) )
 
-	def testLinearCurvesConstantToUniform( self ) :
+	def testLinearCurvesConstantToUniformAverage( self ) :
 
 		curves = self.curvesLinear()
 		p = curves["a"]
@@ -705,7 +705,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 2 ) )
 
-	def testLinearCurvesConstantToVarying( self ) :
+	def testLinearCurvesConstantToVaryingAverage( self ) :
 
 		curves = self.curvesLinear()
 		p = curves["a"]
@@ -714,7 +714,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Varying )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 4 ) )
 
-	def testLinearCurvesConstantToFaceVarying( self ) :
+	def testLinearCurvesConstantToFaceVaryingAverage( self ) :
 
 		curves = self.curvesLinear()
 		p = curves["a"]
@@ -723,7 +723,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 4 ) )
 
-	def testLinearCurvesVertexToConstant( self ) :
+	def testLinearCurvesVertexToConstantAverage( self ) :
 
 		curves = self.curvesLinear()
 		p = curves["b"]
@@ -732,14 +732,14 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,4))/4. ) )
 
-	def testLinearCurvesVertexToUniform( self ) :
+	def testLinearCurvesVertexToUniformAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,2))/2., sum(range(2,4))/2. ] ) )
 
-	def testLinearCurvesVertexToVarying( self ) :
+	def testLinearCurvesVertexToVaryingAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -748,7 +748,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		for i in range( 0, p.data.size() ) :
 			self.assertAlmostEqual( p.data[i], expected[i], 5 )
 
-	def testLinearCurvesVertexToFaceVarying( self ) :
+	def testLinearCurvesVertexToFaceVaryingAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -758,7 +758,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		for i in range( 0, p.data.size() ) :
 			self.assertAlmostEqual( p.data[i], expected[i], 5 )
 
-	def testLinearCurvesUniformToConstant( self ) :
+	def testLinearCurvesUniformToConstantAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -766,7 +766,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,2))/2. ) )
 
-	def testLinearCurvesUniformToVertex( self ) :
+	def testLinearCurvesUniformToVertexAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -774,7 +774,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( ( [ 0 ] * 2 ) + ( [ 1 ] * 2 ) ) )
 
-	def testLinearCurvesUniformToVarying( self ) :
+	def testLinearCurvesUniformToVaryingAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -782,7 +782,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Varying )
 		self.assertEqual( p.data, IECore.FloatVectorData( ( [ 0 ] * 2 ) + ( [ 1 ] * 2 ) ) )
 
-	def testLinearCurvesUniformToFaceVarying( self ) :
+	def testLinearCurvesUniformToFaceVaryingAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -790,7 +790,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( ( [ 0 ] * 2 ) + ( [ 1 ] * 2 ) ) )
 
-	def testLinearCurvesVaryingToConstant( self ) :
+	def testLinearCurvesVaryingToConstantAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -798,7 +798,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,4))/4. ) )
 
-	def testLinearCurvesVaryingToVertex( self ) :
+	def testLinearCurvesVaryingToVertexAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -806,7 +806,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0, 0.5, 2, 2.5 ] ) )
 
-	def testLinearCurvesVaryingToUniform( self ) :
+	def testLinearCurvesVaryingToUniformAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -814,7 +814,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,2))/2., sum(range(2,4))/2. ] ) )
 
-	def testLinearCurvesVaryingToFaceVarying( self ) :
+	def testLinearCurvesVaryingToFaceVaryingAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -822,7 +822,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( range( 0, 4 ) ) )
 
-	def testLinearCurvesFaceVaryingToConstant( self ) :
+	def testLinearCurvesFaceVaryingToConstantAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -830,7 +830,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,4))/4. ) )
 
-	def testLinearCurvesFaceVaryingToVertex( self ) :
+	def testLinearCurvesFaceVaryingToVertexAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -838,7 +838,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0, 0.5, 2, 2.5 ] ) )
 
-	def testLinearCurvesFaceVaryingToUniform( self ) :
+	def testLinearCurvesFaceVaryingToUniformAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -846,7 +846,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,2))/2., sum(range(2,4))/2. ] ) )
 
-	def testLinearCurvesFaceVaryingToVarying( self ) :
+	def testLinearCurvesFaceVaryingToVaryingAverage( self ) :
 		curves = self.curvesLinear()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -1030,7 +1030,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 
 		return testObject
 
-	def testBezierCurvesConstantToVertex( self ) :
+	def testBezierCurvesConstantToVertexAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["a"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
@@ -1038,7 +1038,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 14 ) )
 
-	def testBezierCurvesConstantToUniform( self ) :
+	def testBezierCurvesConstantToUniformAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["a"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -1052,7 +1052,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.StringVectorData( [ "test" ] * 2 ) )
 
-	def testBezierCurvesConstantToVarying( self ) :
+	def testBezierCurvesConstantToVaryingAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["a"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -1060,7 +1060,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Varying )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 6 ) )
 
-	def testBezierCurvesConstantToFaceVarying( self ) :
+	def testBezierCurvesConstantToFaceVaryingAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["a"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -1068,7 +1068,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ 0.5 ] * 6 ) )
 
-	def testBezierCurvesVertexToConstant( self ) :
+	def testBezierCurvesVertexToConstantAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -1076,28 +1076,28 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,14))/14. ) )
 
-	def testBezierCurvesVertexToUniform( self ) :
+	def testBezierCurvesVertexToUniformAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,7))/7., sum(range(7,14))/7. ] ) )
 
-	def testBezierCurvesVertexToVarying( self ) :
+	def testBezierCurvesVertexToVaryingAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Varying )
 		self.assertEqual( p.data, IECore.FloatVectorData( [0, 3, 6] + [7, 10, 13] ) )
 
-	def testBezierCurvesVertexToFaceVarying( self ) :
+	def testBezierCurvesVertexToFaceVaryingAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["b"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( [0, 3, 6] + [7, 10, 13] ) )
 
-	def testBezierCurvesUniformToConstant( self ) :
+	def testBezierCurvesUniformToConstantAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -1105,7 +1105,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,2))/2. ) )
 
-	def testBezierCurvesUniformToVertex( self ) :
+	def testBezierCurvesUniformToVertexAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -1113,7 +1113,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.assertEqual( p.data, IECore.FloatVectorData( ( [ 0 ] * 7 ) + ( [ 1 ] * 7 ) ) )
 
-	def testBezierCurvesUniformToVarying( self ) :
+	def testBezierCurvesUniformToVaryingAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
@@ -1121,7 +1121,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Varying )
 		self.assertEqual( p.data, IECore.FloatVectorData( ( [ 0 ] * 3 ) + ( [ 1 ] * 3 ) ) )
 
-	def testBezierCurvesUniformToFaceVarying( self ) :
+	def testBezierCurvesUniformToFaceVaryingAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["c"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -1129,7 +1129,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( ( [ 0 ] * 3 ) + ( [ 1 ] * 3 ) ) )
 
-	def testBezierCurvesVaryingToConstant( self ) :
+	def testBezierCurvesVaryingToConstantAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -1137,7 +1137,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,6))/6. ) )
 
-	def testBezierCurvesVaryingToVertex( self ) :
+	def testBezierCurvesVaryingToVertexAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -1145,7 +1145,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.nearlyEqual( p.data, IECore.FloatVectorData( [i * (2.0 / 7.0) for i in range(0, 7)]  + [3.0 + i * (2.0 / 7.0) for i in range(0, 7)] ) )
 
-	def testBezierCurvesVaryingToUniform( self ) :
+	def testBezierCurvesVaryingToUniformAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -1153,7 +1153,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,3))/3., sum(range(3,6))/3. ] ) )
 
-	def testBezierCurvesVaryingToFaceVarying( self ) :
+	def testBezierCurvesVaryingToFaceVaryingAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["d"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying)
@@ -1161,7 +1161,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.FaceVarying )
 		self.assertEqual( p.data, IECore.FloatVectorData( range( 0, 6 ) ) )
 
-	def testBezierCurvesFaceVaryingToConstant( self ) :
+	def testBezierCurvesFaceVaryingToConstantAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Constant)
@@ -1169,7 +1169,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Constant )
 		self.assertEqual( p.data, IECore.FloatData( sum(range(0,6))/6. ) )
 
-	def testBezierCurvesFaceVaryingToVertex( self ) :
+	def testBezierCurvesFaceVaryingToVertexAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Vertex)
@@ -1177,7 +1177,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Vertex )
 		self.nearlyEqual( p.data, IECore.FloatVectorData( [i * (2.0 / 7.0) for i in range(0, 7)]  + [3.0 + i * (2.0 / 7.0) for i in range(0, 7)] ) )
 
-	def testBezierCurvesFaceVaryingToUniform( self ) :
+	def testBezierCurvesFaceVaryingToUniformAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Uniform)
@@ -1185,7 +1185,7 @@ class CurvesAlgoTest( unittest.TestCase ) :
 		self.assertEqual( p.interpolation, IECoreScene.PrimitiveVariable.Interpolation.Uniform )
 		self.assertEqual( p.data, IECore.FloatVectorData( [ sum(range(0,3))/3., sum(range(3,6))/3. ] ) )
 
-	def testBezierCurvesFaceVaryingToVarying( self ) :
+	def testBezierCurvesFaceVaryingToVaryingAverage( self ) :
 		curves = self.curvesBezier()
 		p = curves["e"]
 		IECoreScene.CurvesAlgo.resamplePrimitiveVariable(curves, p, IECoreScene.PrimitiveVariable.Interpolation.Varying)
