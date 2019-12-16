@@ -262,7 +262,12 @@ struct MeshAnythingToFaceVarying
 
 } // namespace
 
-void IECoreScene::MeshAlgo::resamplePrimitiveVariable( const MeshPrimitive *mesh, PrimitiveVariable& primitiveVariable, PrimitiveVariable::Interpolation interpolation )
+void IECoreScene::MeshAlgo::resamplePrimitiveVariable( 
+	const MeshPrimitive *mesh, 
+	PrimitiveVariable& primitiveVariable, 
+	PrimitiveVariable::Interpolation interpolation, 
+	MeshAlgo::ResampleMethod method /* = "Average" */
+)
 {
 	PrimitiveVariable::Interpolation srcInterpolation = primitiveVariable.interpolation;
 	if ( srcInterpolation == interpolation )
@@ -295,67 +300,113 @@ void IECoreScene::MeshAlgo::resamplePrimitiveVariable( const MeshPrimitive *mesh
 		srcData = primitiveVariable.data;
 	}
 
-	// average array to single value
-	if ( interpolation == PrimitiveVariable::Constant )
+	if ( method == MeshAlgo::ResampleMethod::Average )
 	{
-		Detail::AverageValueFromVector fn;
-		dstData = dispatch( srcData.get(), fn );
-		primitiveVariable = PrimitiveVariable( interpolation, dstData );
-		return;
+		// average array to single value
+		if ( interpolation == PrimitiveVariable::Constant )
+		{
+			Detail::AverageValueFromVector fn;
+			dstData = dispatch( srcData.get(), fn );
+			primitiveVariable = PrimitiveVariable( interpolation, dstData );
+			return;
+		}
+
+		if ( primitiveVariable.interpolation == PrimitiveVariable::Constant )
+		{
+			DataPtr arrayData = Detail::createArrayData(primitiveVariable, mesh, interpolation);
+			if (arrayData)
+			{
+				primitiveVariable = PrimitiveVariable(interpolation, arrayData);
+			}
+			return;
+		}
+
+		if( interpolation == PrimitiveVariable::Uniform )
+		{
+			if( srcInterpolation == PrimitiveVariable::Varying || srcInterpolation == PrimitiveVariable::Vertex )
+			{
+				MeshVertexToUniform fn( mesh );
+				dstData = despatchTypedData<MeshVertexToUniform, Detail::IsArithmeticVectorTypedData>( srcData.get(), fn );
+			}
+			else if( srcInterpolation == PrimitiveVariable::FaceVarying )
+			{
+				MeshFaceVaryingToUniform fn( mesh );
+				dstData = despatchTypedData<MeshFaceVaryingToUniform, Detail::IsArithmeticVectorTypedData>( srcData.get(), fn );
+			}
+		}
+		else if( interpolation == PrimitiveVariable::Varying || interpolation == PrimitiveVariable::Vertex )
+		{
+			if( srcInterpolation == PrimitiveVariable::Uniform )
+			{
+				MeshUniformToVertex fn( mesh );
+				dstData = despatchTypedData<MeshUniformToVertex, Detail::IsArithmeticVectorTypedData>( srcData.get(), fn );
+			}
+			else if( srcInterpolation == PrimitiveVariable::FaceVarying )
+			{
+				MeshFaceVaryingToVertex fn( mesh );
+				dstData = despatchTypedData<MeshFaceVaryingToVertex, Detail::IsArithmeticVectorTypedData>( srcData.get(), fn );
+			}
+			else if( srcInterpolation == PrimitiveVariable::Varying || srcInterpolation == PrimitiveVariable::Vertex )
+			{
+				dstData = srcData;
+			}
+		}
+		else if( interpolation == PrimitiveVariable::FaceVarying )
+		{
+			MeshAnythingToFaceVarying fn( mesh, srcInterpolation );
+			dstData = despatchTypedData<MeshAnythingToFaceVarying, Detail::IsArithmeticVectorTypedData>( srcData.get(), fn );
+		}
+
+		if( primitiveVariable.indices )
+		{
+			primitiveVariable = PrimitiveVariable( interpolation, primitiveVariable.data, runTimeCast<IntVectorData>( dstData ) );
+		}
+		else
+		{
+			primitiveVariable = PrimitiveVariable( interpolation, dstData );
+		}
+	}
+	else if ( method == MeshAlgo::ResampleMethod::Min )
+	{
+		// minimum array to single value
+		if ( interpolation == PrimitiveVariable::Constant )
+		{
+			Detail::MinimumValueFromVector fn;
+			dstData = despatchTypedData<Detail::MinimumValueFromVector, TypeTraits::IsNumericVectorTypedData>( srcData.get(), fn );
+			primitiveVariable = PrimitiveVariable( interpolation, dstData );
+			return;
+		}
+
+		if ( primitiveVariable.interpolation == PrimitiveVariable::Constant )
+		{
+			DataPtr arrayData = Detail::createArrayData(primitiveVariable, mesh, interpolation);
+			if (arrayData)
+			{
+				primitiveVariable = PrimitiveVariable(interpolation, arrayData);
+			}
+			return;
+		}
 	}
 
-	if ( primitiveVariable.interpolation == PrimitiveVariable::Constant )
+	else if ( method == MeshAlgo::ResampleMethod::Max )
 	{
-		DataPtr arrayData = Detail::createArrayData(primitiveVariable, mesh, interpolation);
-		if (arrayData)
+		// maximum array to single value
+		if ( interpolation == PrimitiveVariable::Constant )
 		{
-			primitiveVariable = PrimitiveVariable(interpolation, arrayData);
+			Detail::MaximumValueFromVector fn;
+			dstData = despatchTypedData<Detail::MaximumValueFromVector, TypeTraits::IsNumericVectorTypedData>( srcData.get(), fn );
+			primitiveVariable = PrimitiveVariable( interpolation, dstData );
+			return;
 		}
-		return;
-	}
 
-	if( interpolation == PrimitiveVariable::Uniform )
-	{
-		if( srcInterpolation == PrimitiveVariable::Varying || srcInterpolation == PrimitiveVariable::Vertex )
+		if ( primitiveVariable.interpolation == PrimitiveVariable::Constant )
 		{
-			MeshVertexToUniform fn( mesh );
-			dstData = despatchTypedData<MeshVertexToUniform, Detail::IsArithmeticVectorTypedData>( srcData.get(), fn );
+			DataPtr arrayData = Detail::createArrayData(primitiveVariable, mesh, interpolation);
+			if (arrayData)
+			{
+				primitiveVariable = PrimitiveVariable(interpolation, arrayData);
+			}
+			return;
 		}
-		else if( srcInterpolation == PrimitiveVariable::FaceVarying )
-		{
-			MeshFaceVaryingToUniform fn( mesh );
-			dstData = despatchTypedData<MeshFaceVaryingToUniform, Detail::IsArithmeticVectorTypedData>( srcData.get(), fn );
-		}
-	}
-	else if( interpolation == PrimitiveVariable::Varying || interpolation == PrimitiveVariable::Vertex )
-	{
-		if( srcInterpolation == PrimitiveVariable::Uniform )
-		{
-			MeshUniformToVertex fn( mesh );
-			dstData = despatchTypedData<MeshUniformToVertex, Detail::IsArithmeticVectorTypedData>( srcData.get(), fn );
-		}
-		else if( srcInterpolation == PrimitiveVariable::FaceVarying )
-		{
-			MeshFaceVaryingToVertex fn( mesh );
-			dstData = despatchTypedData<MeshFaceVaryingToVertex, Detail::IsArithmeticVectorTypedData>( srcData.get(), fn );
-		}
-		else if( srcInterpolation == PrimitiveVariable::Varying || srcInterpolation == PrimitiveVariable::Vertex )
-		{
-			dstData = srcData;
-		}
-	}
-	else if( interpolation == PrimitiveVariable::FaceVarying )
-	{
-		MeshAnythingToFaceVarying fn( mesh, srcInterpolation );
-		dstData = despatchTypedData<MeshAnythingToFaceVarying, Detail::IsArithmeticVectorTypedData>( srcData.get(), fn );
-	}
-
-	if( primitiveVariable.indices )
-	{
-		primitiveVariable = PrimitiveVariable( interpolation, primitiveVariable.data, runTimeCast<IntVectorData>( dstData ) );
-	}
-	else
-	{
-		primitiveVariable = PrimitiveVariable( interpolation, dstData );
 	}
 }

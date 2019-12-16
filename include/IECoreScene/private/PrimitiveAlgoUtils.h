@@ -133,6 +133,36 @@ struct AverageValueFromVector
 	}
 };
 
+struct MinimumValueFromVector
+{
+	typedef IECore::DataPtr ReturnType;
+
+	template<typename From> ReturnType operator()( typename From::ConstPtr data )
+	{
+		const typename From::ValueType &src = data->readable();
+		if ( src.size() )
+		{
+			return new IECore::TypedData< typename From::ValueType::value_type >( *std::min_element( src.begin(), src.end() ) );
+		}
+		return nullptr;
+	}
+};
+
+struct MaximumValueFromVector
+{
+	typedef IECore::DataPtr ReturnType;
+
+	template<typename From> ReturnType operator()( typename From::ConstPtr data )
+	{
+		const typename From::ValueType &src = data->readable();
+		if ( src.size() )
+		{
+			return new IECore::TypedData< typename From::ValueType::value_type >( *std::max_element( src.begin(), src.end() ) );
+		}
+		return nullptr;
+	}
+};
+
 
 inline IECore::DataPtr createArrayData( PrimitiveVariable& primitiveVariable, const Primitive *primitive, PrimitiveVariable::Interpolation interpolation )
 {

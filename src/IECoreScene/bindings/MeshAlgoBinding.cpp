@@ -113,6 +113,13 @@ void bindMeshAlgo()
 
 	scope meshAlgoScope( meshAlgoModule );
 
+	enum_<IECoreScene::MeshAlgo::ResampleMethod>( "ResampleMethod" )
+		.value( "Average", MeshAlgo::Average )
+		.value( "Min", MeshAlgo::Min )
+		.value( "Max", MeshAlgo::Max )
+		.export_values()
+	;
+
 	StdPairToTupleConverter<PrimitiveVariable, PrimitiveVariable>();
 	StdPairToTupleConverter<IECore::IntVectorDataPtr, IECore::IntVectorDataPtr>();
 
@@ -125,7 +132,7 @@ void bindMeshAlgo()
 	def( "calculateFaceArea", &MeshAlgo::calculateFaceArea, ( arg_( "mesh" ), arg_( "position" ) = "P" ) );
 	def( "calculateFaceTextureArea", &MeshAlgo::calculateFaceTextureArea, ( arg_( "mesh" ), arg_( "uvSet" ) = "uv", arg_( "position" ) = "P" ) );
 	def( "calculateDistortion", &MeshAlgo::calculateDistortion, ( arg_( "mesh" ), arg_( "uvSet" ) = "uv", arg_( "referencePosition" ) = "Pref", arg_( "position" ) = "P" ) );
-	def( "resamplePrimitiveVariable", &MeshAlgo::resamplePrimitiveVariable );
+	def( "resamplePrimitiveVariable", &MeshAlgo::resamplePrimitiveVariable, ( arg_( "mesh" ), arg_( "primitiveVariable" ), arg_( "interpolation" ), arg_( "method" ) = MeshAlgo::Average ) );
 	def( "deleteFaces", &MeshAlgo::deleteFaces, arg_( "invert" ) = false );
 	def( "reverseWinding", &MeshAlgo::reverseWinding );
 	def( "reorderVertices", &MeshAlgo::reorderVertices, ( arg_( "mesh" ), arg_( "id0" ), arg_( "id1" ), arg_( "id2" ) ) );

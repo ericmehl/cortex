@@ -47,6 +47,12 @@ namespace IECoreScene
 namespace MeshAlgo
 {
 
+enum ResampleMethod {
+		Average,
+        Min,
+        Max
+	};
+
 /// Calculate the normals of a mesh primitive.
 IECORESCENE_API PrimitiveVariable calculateNormals( const MeshPrimitive *mesh, PrimitiveVariable::Interpolation interpolation = PrimitiveVariable::Vertex, const std::string &position = "P" );
 
@@ -72,7 +78,7 @@ IECORESCENE_API PrimitiveVariable calculateFaceTextureArea( const MeshPrimitive 
 /// The second return value is the V2f distortion of the UV set.
 IECORESCENE_API std::pair<PrimitiveVariable, PrimitiveVariable> calculateDistortion( const MeshPrimitive *mesh, const std::string &uvSet = "uv", const std::string &referencePosition = "Pref", const std::string &position = "P" );
 
-IECORESCENE_API void resamplePrimitiveVariable( const MeshPrimitive *mesh, PrimitiveVariable& primitiveVariable, PrimitiveVariable::Interpolation interpolation );
+IECORESCENE_API void resamplePrimitiveVariable( const MeshPrimitive *mesh, PrimitiveVariable& primitiveVariable, PrimitiveVariable::Interpolation interpolation, MeshAlgo::ResampleMethod method = ResampleMethod::Average );
 
 /// create a new MeshPrimitive deleting faces from the input MeshPrimitive based on the facesToDelete uniform (int|float|bool) PrimitiveVariable
 /// When invert is set then zeros in facesToDelete indicate which faces should be deleted
