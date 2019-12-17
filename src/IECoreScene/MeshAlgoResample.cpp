@@ -61,11 +61,6 @@ struct MeshVertexToUniform
 	{
 	}
 
-	template<Imath::Vec3f> ReturnType operator()( const Imath::Vec3f* data )
-	{
-		throw InvalidArgumentException( "MeshAlgo::MeshVertexToUniform : cannot resample vector data with min or max resample methods." );
-	}
-
 	template<typename From> ReturnType operator()( const From* data )
 	{
 		typename From::Ptr result = static_cast< From* >( Object::create( data->typeId() ).get() );
@@ -77,7 +72,7 @@ struct MeshVertexToUniform
 
 		std::vector<int>::const_iterator vId = m_mesh->vertexIds()->readable().begin();
 		const std::vector<int> &verticesPerFace = m_mesh->verticesPerFace()->readable();
-		if( method == MeshAlgo::ResampleMethod::Average )
+		if( m_method == MeshAlgo::ResampleMethod::Average )
 		{
 			for( std::vector<int>::const_iterator it = verticesPerFace.begin(); it < verticesPerFace.end(); ++it )
 			{
@@ -94,7 +89,7 @@ struct MeshVertexToUniform
 				trg.push_back( total / *it );
 			}
 		}
-		else if ( method == MeshAlgo::ResampleMethod::Min )
+		else if ( m_method == MeshAlgo::ResampleMethod::Min )
 		{
 			for( std::vector<int>::const_iterator it = verticesPerFace.begin(); it < verticesPerFace.end(); ++it )
 			{
@@ -105,13 +100,13 @@ struct MeshVertexToUniform
 
 				for( int j = 1; j < *it; ++j, ++vId )
 				{
-					min = src[ *vId ] < min ? src[ *vId ] : min;
+					min = std::min(min, src[ *vId ]);
 				}
 
 				trg.push_back( min );
 			}
 		}
-		else if ( method == MeshAlgo::ResampleMethod::Max )
+		else if ( m_method == MeshAlgo::ResampleMethod::Max )
 		{
 			for( std::vector<int>::const_iterator it = verticesPerFace.begin(); it < verticesPerFace.end(); ++it )
 			{
@@ -122,7 +117,7 @@ struct MeshVertexToUniform
 
 				for( int j = 1; j < *it; ++j, ++vId )
 				{
-					max = src[ *vId ] > max ? src[ *vId ] : max;
+					max = std::max(max, src[ *vId ]);
 				}
 
 				trg.push_back( max );
@@ -134,6 +129,42 @@ struct MeshVertexToUniform
 		copier( data, result.get() );
 
 		return result;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V2iVectorData>( const IECore::V2iVectorData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V2fVectorData>( const IECore::V2fVectorData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V2dVectorData>( const IECore::V2dVectorData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V3iVectorData>( const IECore::V3iVectorData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V3fVectorData>( const IECore::V3fVectorData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V3dVectorData>( const IECore::V3dVectorData* data )
+	{
+		return nullptr;
 	}
 
 	const MeshPrimitive *m_mesh;
