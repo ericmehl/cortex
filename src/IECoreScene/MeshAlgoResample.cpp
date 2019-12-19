@@ -61,7 +61,7 @@ struct MeshVertexToUniform
 	{
 	}
 
-	template<typename From> ReturnType operator()( const From* data )
+	template<typename From> ReturnType resampleAverage( const From* data)
 	{
 		typename From::Ptr result = static_cast< From* >( Object::create( data->typeId() ).get() );
 		typename From::ValueType &trg = result->writable();
@@ -72,58 +72,20 @@ struct MeshVertexToUniform
 
 		std::vector<int>::const_iterator vId = m_mesh->vertexIds()->readable().begin();
 		const std::vector<int> &verticesPerFace = m_mesh->verticesPerFace()->readable();
-		if( m_method == MeshAlgo::ResampleMethod::Average )
+		for( std::vector<int>::const_iterator it = verticesPerFace.begin(); it < verticesPerFace.end(); ++it )
 		{
-			for( std::vector<int>::const_iterator it = verticesPerFace.begin(); it < verticesPerFace.end(); ++it )
+			// initialize with the first value to avoid
+			// ambiguitity during default construction
+			typename From::ValueType::value_type total = src[ *vId ];
+			++vId;
+
+			for( int j = 1; j < *it; ++j, ++vId )
 			{
-				// initialize with the first value to avoid
-				// ambiguitity during default construction
-				typename From::ValueType::value_type total = src[ *vId ];
-				++vId;
-
-				for( int j = 1; j < *it; ++j, ++vId )
-				{
-					total += src[ *vId ];
-				}
-
-				trg.push_back( total / *it );
+				total += src[ *vId ];
 			}
+
+			trg.push_back( total / *it );
 		}
-		else if ( m_method == MeshAlgo::ResampleMethod::Min )
-		{
-			for( std::vector<int>::const_iterator it = verticesPerFace.begin(); it < verticesPerFace.end(); ++it )
-			{
-				// initialize with the first value to avoid
-				// ambiguitity during default construction
-				typename From::ValueType::value_type min = src[ *vId ];
-				++vId;
-
-				for( int j = 1; j < *it; ++j, ++vId )
-				{
-					min = std::min(min, src[ *vId ]);
-				}
-
-				trg.push_back( min );
-			}
-		}
-		else if ( m_method == MeshAlgo::ResampleMethod::Max )
-		{
-			for( std::vector<int>::const_iterator it = verticesPerFace.begin(); it < verticesPerFace.end(); ++it )
-			{
-				// initialize with the first value to avoid
-				// ambiguitity during default construction
-				typename From::ValueType::value_type max = src[ *vId ];
-				++vId;
-
-				for( int j = 1; j < *it; ++j, ++vId )
-				{
-					max = std::max(max, src[ *vId ]);
-				}
-
-				trg.push_back( max );
-			}
-		}
-		
 
 		IECoreScene::PrimitiveVariableAlgos::GeometricInterpretationCopier<From> copier;
 		copier( data, result.get() );
@@ -131,38 +93,162 @@ struct MeshVertexToUniform
 		return result;
 	}
 
+	template<typename From> ReturnType resampleMin( const From* data)
+	{
+		typename From::Ptr result = static_cast< From* >( Object::create( data->typeId() ).get() );
+		typename From::ValueType &trg = result->writable();
+		const typename From::ValueType &src = data->readable();
+
+		// TODO sipmlify this code by using polygon face & vertex iterators
+		trg.reserve( m_mesh->numFaces() );
+
+		std::vector<int>::const_iterator vId = m_mesh->vertexIds()->readable().begin();
+		const std::vector<int> &verticesPerFace = m_mesh->verticesPerFace()->readable();
+		for( std::vector<int>::const_iterator it = verticesPerFace.begin(); it < verticesPerFace.end(); ++it )
+		{
+			// initialize with the first value to avoid
+			// ambiguitity during default construction
+			typename From::ValueType::value_type max = src[ *vId ];
+			++vId;
+
+			for( int j = 1; j < *it; ++j, ++vId )
+			{
+				max = std::max(max, src[ *vId ]);
+			}
+
+			trg.push_back( max );
+		}
+
+		IECoreScene::PrimitiveVariableAlgos::GeometricInterpretationCopier<From> copier;
+		copier( data, result.get() );
+
+		return result;
+	}
+
+	template<typename From> ReturnType resampleMax( const From* data)
+	{
+		typename From::Ptr result = static_cast< From* >( Object::create( data->typeId() ).get() );
+		typename From::ValueType &trg = result->writable();
+		const typename From::ValueType &src = data->readable();
+
+		// TODO sipmlify this code by using polygon face & vertex iterators
+		trg.reserve( m_mesh->numFaces() );
+
+		std::vector<int>::const_iterator vId = m_mesh->vertexIds()->readable().begin();
+		const std::vector<int> &verticesPerFace = m_mesh->verticesPerFace()->readable();
+		for( std::vector<int>::const_iterator it = verticesPerFace.begin(); it < verticesPerFace.end(); ++it )
+		{
+			// initialize with the first value to avoid
+			// ambiguitity during default construction
+			typename From::ValueType::value_type total = src[ *vId ];
+			++vId;
+
+			for( int j = 1; j < *it; ++j, ++vId )
+			{
+				total += src[ *vId ];
+			}
+
+			trg.push_back( total / *it );
+		}
+
+		IECoreScene::PrimitiveVariableAlgos::GeometricInterpretationCopier<From> copier;
+		copier( data, result.get() );
+
+		return result;
+	}
+
+	template<typename From> ReturnType operator()( const From* data )
+	{
+		if(m_method == MeshAlgo::ResampleMethod::Average)
+		{
+			return resampleAverage( data );
+		}
+
+		throw InvalidArgumentException( "MeshAlgo::MeshVertexToUniform : vector data types only support average resampling" );
+		
+		return nullptr;
+	}
+
 	template<> 
-	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V2iVectorData>( const IECore::V2iVectorData* data )
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::BoolData>( const IECore::BoolData* data )
 	{
 		return nullptr;
 	}
 
 	template<> 
-	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V2fVectorData>( const IECore::V2fVectorData* data )
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::FloatData>( const IECore::FloatData* data )
 	{
 		return nullptr;
 	}
 
 	template<> 
-	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V2dVectorData>( const IECore::V2dVectorData* data )
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::DoubleData>( const IECore::DoubleData* data )
 	{
 		return nullptr;
 	}
 
 	template<> 
-	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V3iVectorData>( const IECore::V3iVectorData* data )
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::IntData>( const IECore::IntData* data )
 	{
 		return nullptr;
 	}
 
 	template<> 
-	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V3fVectorData>( const IECore::V3fVectorData* data )
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::UIntData>( const IECore::UIntData* data )
 	{
 		return nullptr;
 	}
 
 	template<> 
-	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::V3dVectorData>( const IECore::V3dVectorData* data )
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::CharData>( const IECore::CharData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::UCharData>( const IECore::UCharData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::ShortData>( const IECore::ShortData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::UShortData>( const IECore::UShortData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::Int64Data>( const IECore::Int64Data* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::UInt64Data>( const IECore::UInt64Data* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::StringData>( const IECore::StringData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::InternedStringData>( const IECore::InternedStringData* data )
+	{
+		return nullptr;
+	}
+
+	template<> 
+	MeshVertexToUniform::ReturnType MeshVertexToUniform::operator()<IECore::HalfData>( const IECore::HalfData* data )
 	{
 		return nullptr;
 	}
