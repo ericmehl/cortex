@@ -1185,7 +1185,7 @@ else:
 			"/GR", # enable RTTI
 			"/TP", # treat all files as c++ (vs C)
 			"/FC", # display full paths in diagnostics
-			"/EHsc\";\"/MP" # catch c++ exceptions only
+			"/EHsc", # catch c++ exceptions only
 		]
 	)
 
