@@ -1072,18 +1072,21 @@ def substituteFileText( subEnv, sourceFile, destFile, subs ) :
 # Scons CPPPATH as they recommend to keep code compact
 # throughout the module configurations
 
-def formatSystemIncludes( e, includeList ) :
-	if type(includeList) != list :
-		includeList = [includeList]
+def formatSystemIncludes(e, includeList):
+    if type(includeList) != list:
+        includeList = [includeList]
 
-	includeList = [ i for i in includeList if e.subst( i ) != "" ]
-	if e[ "PLATFORM" ] == "win32" :
-		formattedList = [ "/I{}".format(i) for i in includeList ]
-	else:
-		formattedList = []
-		for i in includeList:
-			formattedList += [ "-isystem", i ]
-	return formattedList
+    includeList = [i for i in includeList if e.subst(i) != ""]
+    if e["PLATFORM"] == "win32" and e["CXX"] == "cl":
+        if e["WARNINGS_AS_ERRORS"]:
+            formattedList = ["/external:I\"{}\"".format(i) for i in includeList]
+        else:
+            formattedList = ["/I\"{}\"".format(i) for i in includeList]
+    else:
+        formattedList = []
+        for i in includeList:
+            formattedList += ["-isystem", i]
+    return formattedList
 
 # update the include and lib paths
 dependencyIncludes = [
@@ -1204,12 +1207,23 @@ else:
 			"/TP", # treat all files as c++ (vs C)
 			"/FC", # display full paths in diagnostics
 			"/EHsc", # catch c++ exceptions only
+			"/MP",	# build in multiple processes
 		]
 	)
 
 	if env["WARNINGS_AS_ERRORS"] :
 		env.Append(
-			CXXFLAGS = [ "/WX" ],
+			CXXFLAGS=[
+                "/W4",
+                "/WX",
+                "/experimental:external",
+                "/external:W0",
+                # We are building all client code in the exact same environment, so we can safely
+                # disable warnings about not exporting private classes
+                "/wd4251",
+				"/wd4100",  # suppress warning about unused parameters
+				"/wd4706",	# suppress warning against using assignment in conditionals
+            ]
 		)
 
 	if env["BUILD_TYPE"] == "DEBUG" :
