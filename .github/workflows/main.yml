@@ -3,12 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - master
-      - '*_maintenance'
+      - '*'
   pull_request:
     branches:
-      - master
-      - '*_maintenance'
+      - '*'
 
 jobs:
 
@@ -68,7 +66,6 @@ jobs:
           - name: macos
             os: macos-10.15
             buildType: RELEASE
-            containerImage:
             options: config/azure/options.macos
             dependenciesURL: https://github.com/GafferHQ/dependencies/releases/download/2.0.0a4/gafferDependencies-2.0.0-Python2-osx.tar.gz
 
