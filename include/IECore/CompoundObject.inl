@@ -96,10 +96,6 @@ const T *CompoundObject::member( const InternedString &name, bool throwException
 			{
 				throw Exception( boost::str( boost::format( "CompoundObject child \"%s\" is not of type \"%s\"." ) % name.value() % T::staticTypeName() ) );
 			}
-			else
-			{
-				return nullptr;
-			}
 		}
 	}
 	else
@@ -107,10 +103,6 @@ const T *CompoundObject::member( const InternedString &name, bool throwException
 		if( throwExceptions )
 		{
 			throw Exception( boost::str( boost::format( "CompoundObject has no child named \"%s\"." ) % name.value() ) );
-		}
-		else
-		{
-			return nullptr;
 		}
 	}
 	return nullptr;
