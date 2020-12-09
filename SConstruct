@@ -1049,6 +1049,24 @@ env.Append(
 	]
 )
 
+# Take a dictionary of the form {"old": "new", "old2": "new2",...}
+# and perform platform-specific substitutions on the given file
+def substituteFileText( subEnv, sourceFile, destFile, subs ) :
+	if len( subs.keys() ) == 0:
+		return None
+
+	if subEnv["PLATFORM"] != "win32" :
+		sedSubstitutions = "s/{}/{}/g".format( subs.keys()[0], subs[subs.keys()[0]] )
+		for i in range( 1, len(subs.keys() ) ) :
+			sedSubstitutions += "; s/{}/{}/g".format( subs.keys()[i], subs[subs.keys()[i]] )
+		return subEnv.Command( destFile, sourceFile, "sed \"" + sedSubstitutions + "\" $SOURCE > $TARGET" )
+	else :
+		psSubstitutions = ""
+		for key in subs.keys() :
+			psSubstitutions += " -replace \\\"{}\\\",\\\"{}\\\"".format( key.replace( "!", "\!" ), subs[key].replace( "!", "\!" ) )
+		subEnv.Dump("ENV")
+		return subEnv.Command( destFile, sourceFile, "powershell -Command \"cat $SOURCE | % {{ $$_{} }} | Out-File -Encoding utf8 $TARGET\"".format( psSubstitutions ) )
+
 # MSVC does not have a -isystem equivalent. Manually handling
 # cross-platform differences here is better than using
 # Scons CPPPATH as they recommend to keep code compact
@@ -1691,14 +1709,20 @@ coreEnv.Alias( "installLib", [ coreLibraryInstall ] )
 # headers
 
 # take special care for the Version header
-sedSubstitutions = "s/IE_CORE_MILESTONEVERSION/$IECORE_MILESTONE_VERSION/g"
-sedSubstitutions += "; s/IE_CORE_MAJORVERSION/$IECORE_MAJOR_VERSION/g"
-sedSubstitutions += "; s/IE_CORE_MINORVERSION/$IECORE_MINOR_VERSION/g"
-sedSubstitutions += "; s/IE_CORE_PATCHVERSION/$IECORE_PATCH_VERSION/g"
 # windows seems to return the glob matches with a delightful mix of path seperators (eg "include/IECore\\Version.h")
 versionHeader = os.path.join( "include/IECore", "Version.h" )
 coreHeaders.remove( versionHeader )
-versionHeaderInstall = env.Command( "$INSTALL_HEADER_DIR/IECore/Version.h", versionHeader, "sed \"" + sedSubstitutions + "\" $SOURCE > $TARGET" )
+versionHeaderInstall = substituteFileText(
+	env,
+	versionHeader,
+	"$INSTALL_HEADER_DIR/IECore/Version.h",
+	{
+		"IE_CORE_MILESTONEVERSION": "$IECORE_MILESTONE_VERSION",
+		"IE_CORE_MAJORVERSION" : "$IECORE_MAJOR_VERSION",
+		"IE_CORE_MINORVERSION" : "$IECORE_MINOR_VERSION",
+		"IE_CORE_PATCHVERSION" : "$IECORE_PATCH_VERSION",
+	}
+)
 # handle the remaining core headers
 headerInstall = coreEnv.Install( "$INSTALL_HEADER_DIR/IECore", coreHeaders )
 coreEnv.AddPostAction( "$INSTALL_HEADER_DIR/IECore", lambda target, source, env : makeSymLinks( coreEnv, coreEnv["INSTALL_HEADER_DIR"] ) )
@@ -3541,10 +3565,14 @@ if doConfigure :
 
 		sys.stdout.write( "yes\n" )
 
-		if env["PLATFORM"] != "win32":
-			docs = docEnv.Command( "doc/html/index.html", "doc/config/Doxyfile", "sed s/!CORTEX_VERSION!/$IECORE_VERSION/g $SOURCE | $DOXYGEN -" )
-		else:
-			docs = docEnv.Command( "doc/html/index.html", "doc/config/Doxyfile", "powershell -Command \"cat $SOURCE | % { $$_ -replace \\\"\!CORTEX_VERSION\!\\\",\\\"$IECORE_VERSION\\\" } | $DOXYGEN -\"" )
+		docs = substituteFileText(
+			docEnv,
+			"doc/config/Doxyfile",
+			"doc/html/index.html",
+			{
+				"!CORTEX_VERSION!" : "$IECORE_VERSION",
+			}
+		)
 		docEnv.NoCache( docs )
 
 		for modulePath in ( "python/IECore", "python/IECoreGL", "python/IECoreNuke", "python/IECoreMaya", "python/IECoreHoudini" ) :
