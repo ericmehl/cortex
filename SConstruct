@@ -55,7 +55,7 @@ SConsignFile()
 
 ieCoreMilestoneVersion = 10 # for announcing major milestones - may contain all of the below
 ieCoreMajorVersion = 1 # backwards-incompatible changes
-ieCoreMinorVersion = 2 # new backwards-compatible features
+ieCoreMinorVersion = 4 # new backwards-compatible features
 ieCorePatchVersion = 0 # bug fixes
 ieCoreVersionSuffix = "" # used for alpha/beta releases. Example: "a1", "b2", etc.
 
@@ -1384,7 +1384,7 @@ def pythonVersion( pythonEnv ) :
 
 	pythonExecutable = pythonEnv.subst( "$PYTHON" )
 	env = pythonEnv["ENV"].copy()
-	env[libraryPathEnvVar] = os.pathsep.join( pythonEnv["LIBPATH"] )
+	env[libraryPathEnvVar] = pythonEnv.subst( os.pathsep.join( pythonEnv["LIBPATH"] ) )
 	return subprocess.check_output(
 		[ pythonExecutable, "-c", 'import sys; print( \"%s.%s\" % sys.version_info[:2] )' ],
 		env = env,
@@ -2995,6 +2995,10 @@ arnoldPythonModuleEnv.Append(
 arnoldDriverEnv = arnoldEnv.Clone( IECORE_NAME = "ieOutputDriver" )
 arnoldDriverEnv["SHLIBPREFIX"] = ""
 arnoldDriverEnv["SHLIBSUFFIX"] = ".so" if env["PLATFORM"] != "win32" else ".dll"
+if env["PLATFORM"]=="darwin" :
+	# Symbols we need from `libai.dylib` will be resolved at runtime when Arnold
+	# loads the driver.
+	arnoldDriverEnv.Append( LINKFLAGS = "-Wl,-undefined,dynamic_lookup" )
 
 haveArnold = False
 
@@ -3041,7 +3045,6 @@ if doConfigure :
 
 		arnoldDriverEnv.Append(
 			LIBS = [
-				"ai",
 				os.path.basename( coreEnv.subst( "$INSTALL_LIB_NAME" ) ),
 				os.path.basename( imageEnv.subst( "$INSTALL_LIB_NAME" ) ),
 				os.path.basename( arnoldEnv.subst( "$INSTALL_LIB_NAME" ) ),
@@ -3534,7 +3537,7 @@ if doConfigure :
 
 		# tests
 		appleseedTestEnv = testEnv.Clone()
-		appleseedTestEnv["ENV"]["PYTHONPATH"] += ":./contrib/IECoreAppleseed/python" + ":" + appleseedEnv.subst( "$APPLESEED_LIB_PATH/python2.7" )
+		appleseedTestEnv["ENV"]["PYTHONPATH"] += ":./contrib/IECoreAppleseed/python" + ":" + appleseedEnv.subst( "$APPLESEED_LIB_PATH/python" + pythonEnv["PYTHON_VERSION"] )
 		appleseedTestEnv["ENV"][testEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += ":" + appleseedEnv.subst( ":".join( appleseedPythonModuleEnv["LIBPATH"] ) )
 		appleseedTestEnv["ENV"]["PATH"] = appleseedEnv.subst( "$APPLESEED_ROOT/bin" ) + ":" + appleseedTestEnv["ENV"]["PATH"]
 		appleseedTestEnv["ENV"]["APPLESEED_SEARCHPATH"] = os.getcwd() + "/contrib/IECoreAppleseed/test/IECoreAppleseed/plugins"
