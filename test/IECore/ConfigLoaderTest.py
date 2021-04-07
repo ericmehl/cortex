@@ -169,9 +169,11 @@ class ConfigLoaderTest( unittest.TestCase ) :
 
 	def testSearchPathAsEnvVar( self ) :
 
-		os.environ["IECORE_CONFIGLOADERTEST_PATHS"] = "%s:%s" % (
-			os.path.dirname( __file__ ) + "/config/orderOne",
-			os.path.dirname( __file__ ) + "/config/orderTwo"
+		os.environ["IECORE_CONFIGLOADERTEST_PATHS"] = os.pathsep.join(
+			[
+				os.path.dirname( __file__ ) + "/config/orderOne",
+				os.path.dirname( __file__ ) + "/config/orderTwo"
+			]
 		)
 
 		config = {}
@@ -184,9 +186,11 @@ class ConfigLoaderTest( unittest.TestCase ) :
 
 		self.assertEqual( config["a"], 1 )
 
-		os.environ["IECORE_CONFIGLOADERTEST_PATHS"] = "%s:%s" % (
-			os.path.dirname( __file__ ) + "/config/orderTwo",
-			os.path.dirname( __file__ ) + "/config/orderOne"
+		os.environ["IECORE_CONFIGLOADERTEST_PATHS"] = os.pathsep.join(
+			[
+				os.path.dirname( __file__ ) + "/config/orderTwo",
+				os.path.dirname( __file__ ) + "/config/orderOne"
+			]
 		)
 
 		config = {}

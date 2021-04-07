@@ -35,8 +35,13 @@
 
 """Unit test for HeaderGenerator binding"""
 import os
-import pwd
 import unittest
+
+try:
+	import pwd
+except ImportError:
+	pass
+
 
 import IECore
 
