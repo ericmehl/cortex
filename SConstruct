@@ -274,19 +274,19 @@ o.Add(
 
 o.Add(
 	"CPPPATH",
-	"A colon separated list of paths to search for headers on.",
+	"A colon (semi-colon on Windows) separated list of paths to search for headers on.",
 	"",
 )
 
 o.Add(
 	"LIBPATH",
-	"A colon separated list of paths to search for libraries on.",
+	"A colon (semi-colon on Windows) separated list of paths to search for libraries on.",
 	"",
 )
 
 o.Add(
 	"PYTHONPATH",
-	"A colon separated list of paths to search for python modules on.",
+	"A colon (semi-colon on Windows) separated list of paths to search for python modules on.",
 	"",
 )
 
@@ -991,8 +991,8 @@ o.Add(
 
 o.Add(
 	"TEST_LIBPATH",
-	"Additional colon separated paths to be prepended to the library path"
-	"used when running tests.",
+	"Additional colon separated (semi-colon on Windows) paths to be prepended to the "
+	"library path used when running tests.",
 	""
 )
 
@@ -1008,8 +1008,8 @@ else:
 
 o.Add(
 	"TEST_LIBRARY_PATH_ENV_VAR",
-	"This is a curious one, probably only ever necessary at image engine. It "
-	"specifies the name of an environment variable used to specify the library "
+	"This is a curious one, probably only ever necessary at image engine and for Windows. "
+	"It specifies the name of an environment variable used to specify the library "
 	"search paths correctly when running the tests. Defaults to LD_LIBRARY_PATH on "
 	"Linux and DYLD_LIBRARY_PATH on OSX.",
 	libraryPathEnvVar
@@ -1036,7 +1036,7 @@ env = Environment(
 )
 
 if isinstance( env["LIBPATH"], str ) :
-	env["LIBPATH"] = env["LIBPATH"].split( ":" )
+	env["LIBPATH"] = env["LIBPATH"].split( os.pathsep )
 
 for e in env["ENV_VARS_TO_IMPORT"].split() :
 	if e in os.environ :
@@ -1482,15 +1482,15 @@ if pythonModuleEnv["PLATFORM"]=="darwin" :
 
 testEnv = env.Clone()
 
-testEnvLibPath = ":".join( testEnv["LIBPATH"] )
+testEnvLibPath = os.pathsep.join( testEnv["LIBPATH"] )
 if testEnv["TEST_LIBPATH"] != "" :
-	testEnvLibPath = testEnv["TEST_LIBPATH"] + ":" + testEnvLibPath
+	testEnvLibPath = testEnv["TEST_LIBPATH"] + os.pathsep + testEnvLibPath
 testEnvLibPath = testEnv.subst( testEnvLibPath )
 
 testEnv["ENV"][testEnv["TEST_LIBRARY_PATH_ENV_VAR"]] = testEnvLibPath
 if libraryPathEnvVar :
 	testEnv["ENV"][libraryPathEnvVar] = testEnvLibPath
-testEnv["ENV"]["IECORE_OP_PATHS"] = "test/IECore/ops"
+testEnv["ENV"]["IECORE_OP_PATHS"] = os.path.join( "test", "IECore", "ops" )
 
 c = Configure( testEnv )
 
@@ -1500,7 +1500,12 @@ withBoostTest = withBoostUnitTest and withBoostTestExecMonitor
 
 c.Finish()
 
-testEnv["ENV"]["PYTHONPATH"] = "./python:" + testEnv.subst( "$PYTHONPATH" )
+testEnv["ENV"]["PYTHONPATH"] = os.pathsep.join(
+	[
+		os.path.join( ".", "python" ),
+		testEnv.subst( "$PYTHONPATH" )
+	]
+)
 
 if testEnv["PLATFORM"] == "darwin" :
 
@@ -2092,7 +2097,7 @@ if doConfigure :
 		# testing
 		vdbTestEnv = testEnv.Clone()
 
-		vdbTestEnv["ENV"]["PYTHONPATH"] = vdbTestEnv["ENV"]["PYTHONPATH"] + ":" + vdbTestEnv["VDB_PYTHON_PATH"]
+		vdbTestEnv["ENV"]["PYTHONPATH"] = vdbTestEnv["ENV"]["PYTHONPATH"] + os.pathsep + vdbTestEnv["VDB_PYTHON_PATH"]
 
 		vdbTest = vdbTestEnv.Command( "test/IECoreVDB/results.txt", vdbPythonModule, "$PYTHON $TEST_VDB_SCRIPT --verbose" )
 		NoCache( vdbTest )
@@ -2466,9 +2471,9 @@ if doConfigure :
 
 		mayaTestEnv = testEnv.Clone()
 
-		mayaTestLibPaths = mayaEnv.subst( ":".join( mayaPythonModuleEnv["LIBPATH"] ) )
-		mayaTestEnv["ENV"][mayaTestEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += ":" + mayaTestLibPaths
-		mayaTestEnv["ENV"][libraryPathEnvVar] += ":" + mayaTestLibPaths
+		mayaTestLibPaths = mayaEnv.subst( os.pathsep.join( mayaPythonModuleEnv["LIBPATH"] ) )
+		mayaTestEnv["ENV"][mayaTestEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += os.pathsep + mayaTestLibPaths
+		mayaTestEnv["ENV"][libraryPathEnvVar] += os.pathsep + mayaTestLibPaths
 
 		mayaTestEnv["ENV"]["PATH"] = mayaEnv.subst( "$MAYA_ROOT/bin:" ) + mayaEnv["ENV"]["PATH"]
 		mayaTestEnv["ENV"]["MAYA_PLUG_IN_PATH"] = "./plugins/maya:./test/IECoreMaya/plugins"
@@ -2933,9 +2938,9 @@ if doConfigure :
 		#=====
 		houdiniTestEnv = testEnv.Clone()
 
-		houdiniTestLibPaths = houdiniEnv.subst( ":".join( houdiniPythonModuleEnv["LIBPATH"] ) )
-		houdiniTestEnv["ENV"][houdiniTestEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += ":" + houdiniTestLibPaths
-		houdiniTestEnv["ENV"][libraryPathEnvVar] += ":" + houdiniTestLibPaths
+		houdiniTestLibPaths = houdiniEnv.subst( os.pathsep.join( houdiniPythonModuleEnv["LIBPATH"] ) )
+		houdiniTestEnv["ENV"][houdiniTestEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += os.pathsep + houdiniTestLibPaths
+		houdiniTestEnv["ENV"][libraryPathEnvVar] += os.pathsep + houdiniTestLibPaths
 
 		houdiniTestEnv["ENV"]["PATH"] = houdiniEnv.subst( "$HOUDINI_ROOT/bin:" ) + houdiniEnv["ENV"]["PATH"]
 
@@ -3113,8 +3118,8 @@ if doConfigure :
 		# tests
 		arnoldTestEnv = testEnv.Clone()
 		arnoldTestEnv["ENV"]["PYTHONPATH"] += ":./contrib/IECoreArnold/python:" + arnoldEnv.subst( "$ARNOLD_ROOT/python" )
-		arnoldTestEnv["ENV"][testEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += ":" + arnoldEnv.subst( ":".join( arnoldPythonModuleEnv["LIBPATH"] ) )
-		arnoldTestEnv["ENV"]["PATH"] = arnoldEnv.subst( "$ARNOLD_ROOT/bin" ) + ":" + arnoldTestEnv["ENV"]["PATH"]
+		arnoldTestEnv["ENV"][testEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += os.pathsep + arnoldEnv.subst( os.pathsep.join( arnoldPythonModuleEnv["LIBPATH"] ) )
+		arnoldTestEnv["ENV"]["PATH"] = arnoldEnv.subst( "$ARNOLD_ROOT/bin" ) + os.pathsep + arnoldTestEnv["ENV"]["PATH"]
 		arnoldTestEnv["ENV"]["ARNOLD_PLUGIN_PATH"] = "contrib/IECoreArnold/test/IECoreArnold/plugins"
 		arnoldTest = arnoldTestEnv.Command( "contrib/IECoreArnold/test/IECoreArnold/results.txt", arnoldPythonModule, "$PYTHON $TEST_ARNOLD_SCRIPT --verbose" )
 		NoCache( arnoldTest )
@@ -3277,8 +3282,8 @@ if doConfigure :
 		usdLibPath = coreEnv.subst("$USD_LIB_PATH")
 		usdPythonPath = os.path.join(usdLibPath, "python")
 
-		usdTestEnv["ENV"]["PYTHONPATH"] += ":" + usdPythonPath
-		usdTestEnv["ENV"][testEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += ":" + usdLibPath
+		usdTestEnv["ENV"]["PYTHONPATH"] += os.pathsep + usdPythonPath
+		usdTestEnv["ENV"][testEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += os.pathsep + usdLibPath
 
 		# setup pluginInfo for custom file format registration
 		testSdfPlugInfo = os.path.join( os.getcwd(), "plugins", "usd", "plugInfo.json" )
@@ -3421,8 +3426,8 @@ if doConfigure :
 
 		# tests
 		alembicTestEnv = testEnv.Clone()
-		alembicTestLibPaths = alembicEnv.subst( ":".join( alembicPythonModuleEnv["LIBPATH"] ) )
-		alembicTestEnv["ENV"][alembicTestEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += ":" + alembicTestLibPaths
+		alembicTestLibPaths = alembicEnv.subst( os.pathsep.join( alembicPythonModuleEnv["LIBPATH"] ) )
+		alembicTestEnv["ENV"][alembicTestEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += os.pathsep + alembicTestLibPaths
 		alembicTestEnv["ENV"]["PYTHONPATH"] += ":./contrib/IECoreAlembic/python"
 		alembicTest = alembicTestEnv.Command( "contrib/IECoreAlembic/test/IECoreAlembic/results.txt", alembicPythonModule, "$PYTHON $TEST_ALEMBIC_SCRIPT --verbose" )
 		NoCache( alembicTest )
@@ -3579,9 +3584,9 @@ if doConfigure :
 
 		# tests
 		appleseedTestEnv = testEnv.Clone()
-		appleseedTestEnv["ENV"]["PYTHONPATH"] += ":./contrib/IECoreAppleseed/python" + ":" + appleseedEnv.subst( "$APPLESEED_LIB_PATH/python" + pythonEnv["PYTHON_VERSION"] )
-		appleseedTestEnv["ENV"][testEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += ":" + appleseedEnv.subst( ":".join( appleseedPythonModuleEnv["LIBPATH"] ) )
-		appleseedTestEnv["ENV"]["PATH"] = appleseedEnv.subst( "$APPLESEED_ROOT/bin" ) + ":" + appleseedTestEnv["ENV"]["PATH"]
+		appleseedTestEnv["ENV"]["PYTHONPATH"] += ":./contrib/IECoreAppleseed/python" + os.pathsep + appleseedEnv.subst( "$APPLESEED_LIB_PATH/python" + pythonEnv["PYTHON_VERSION"] )
+		appleseedTestEnv["ENV"][testEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += os.pathsep + appleseedEnv.subst( os.pathsep.join( appleseedPythonModuleEnv["LIBPATH"] ) )
+		appleseedTestEnv["ENV"]["PATH"] = appleseedEnv.subst( "$APPLESEED_ROOT/bin" ) + os.pathsep + appleseedTestEnv["ENV"]["PATH"]
 		appleseedTestEnv["ENV"]["APPLESEED_SEARCHPATH"] = os.getcwd() + "/contrib/IECoreAppleseed/test/IECoreAppleseed/plugins"
 		appleseedTest = appleseedTestEnv.Command( "contrib/IECoreAppleseed/test/IECoreAppleseed/results.txt", appleseedPythonModule, "$PYTHON $TEST_APPLESEED_SCRIPT --verbose" )
 		NoCache( appleseedTest )
