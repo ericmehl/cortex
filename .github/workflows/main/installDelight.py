@@ -56,8 +56,7 @@ elif sys.platform == "darwin" :
 			"sudo",
 			"installer",
 			"-pkg",
-			"/Volumes/3Delight\\",
-			"NSI\\",
+			"/Volumes/3Delight NSI "
 			"{delightVersion}/3DelightNSI-{delightVersion}-Darwin-x86_64.pkg".format(
 				delightVersion = delightVersion
 			),
