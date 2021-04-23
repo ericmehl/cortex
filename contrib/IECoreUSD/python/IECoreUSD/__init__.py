@@ -1,6 +1,7 @@
 ##########################################################################
 #
 #  Copyright (c) 2017, Image Engine Design Inc. All rights reserved.
+#  Copyright (c) 2021, Hypothetical Inc. All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions are
@@ -32,6 +33,19 @@
 #
 ##########################################################################
 
-from ._IECoreUSD import *
+import sys
+import platform
+import ctypes
 
 __import__( "IECore" ).loadConfig( "CORTEX_STARTUP_PATHS", subdirectory = "IECoreUSD" )
+
+# Load _IECoreUSD manually to ensure cross-platform compatibility
+sys = platform.system()
+if sys == "Darwin" :
+    libName = "lib!INSTALL_LIB_NAME!.dylib"
+elif sys == "Windows" :
+    libName = "!INSTALL_LIB_NAME!.dll"
+else :
+    libName = "lib!INSTALL_LIB_NAME!.so"
+
+ctypes.CDLL( libName )

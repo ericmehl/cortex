@@ -3212,6 +3212,8 @@ if doConfigure :
 		usdPythonScripts = glob.glob( "contrib/IECoreUSD/python/IECoreUSD/*.py" )
 		usdPythonSources = sorted( glob.glob( "contrib/IECoreUSD/src/IECoreUSD/bindings/*.cpp" ) )
 		usdHeaders = glob.glob( "contrib/IECoreUSD/include/IECoreUSD/*.h" ) + glob.glob( "contrib/IECoreUSD/include/IECoreUSD/*.inl" )
+		usdTestScripts = glob.glob( "contrib/IECoreUSD/test/*.py")
+		usdTestData = glob.glob( "contrib/IECoreUSD/test/data/*.*" )
 
 		# we can't append this before configuring, as then it gets built as
 		# part of the configure process
@@ -3253,22 +3255,21 @@ if doConfigure :
 		usdEnv.Alias( "installUSD", usdResourceInstall )
 
 		# python module
-		usdPythonModuleEnv.Append(
-			LIBS = [
-				os.path.basename( coreEnv.subst( "$INSTALL_LIB_NAME" ) ),
-				os.path.basename( corePythonEnv.subst( "$INSTALL_PYTHONLIB_NAME" ) ),
-				os.path.basename( usdEnv.subst( "$INSTALL_LIB_NAME" ) ),
-			]
-		)
-		usdPythonModule = usdPythonModuleEnv.SharedLibrary( "contrib/IECoreUSD/python/IECoreUSD/_IECoreUSD", usdPythonSources )
-		usdPythonModuleEnv.Depends( usdPythonModule, usdLibrary )
+		for pythonScript in usdPythonScripts :
+			usdPythonModuleInstall = usdPythonModuleEnv.Substfile(
+				"$INSTALL_PYTHON_DIR/IECoreUSD/" + os.path.basename(pythonScript),
+				pythonScript,
+				SUBST_DICT = {
+					"!INSTALL_LIB_NAME!" : os.path.basename( usdPythonModuleEnv.subst( "$INSTALL_LIB_NAME" ) )
+				}
+			)
+			usdPythonModuleEnv.Alias( "install", usdPythonModuleInstall )
+			usdPythonModuleEnv.Alias( "installUSD", usdPythonModuleInstall )
 
-		usdPythonModuleInstall = usdPythonModuleEnv.Install( "$INSTALL_PYTHON_DIR/IECoreUSD", usdPythonScripts + usdPythonModule )
 		usdPythonModuleEnv.AddPostAction( "$INSTALL_PYTHON_DIR/IECoreUSD", lambda target, source, env : makeSymLinks( usdPythonModuleEnv, usdPythonModuleEnv["INSTALL_PYTHON_DIR"] ) )
-		usdPythonModuleEnv.Alias( "install", usdPythonModuleInstall )
-		usdPythonModuleEnv.Alias( "installUSD", usdPythonModuleInstall )
+		
 
-		Default( [ usdLibrary, usdPythonModule ] )
+		Default( [ usdLibrary ] )
 
 		# tests
 		usdTestEnv = testEnv.Clone()
@@ -3289,9 +3290,15 @@ if doConfigure :
 				"!IECOREUSD_RELATIVE_LIB_FOLDER!" : os.path.join( os.getcwd(), "lib", os.path.basename( usdLibraryInstall[0].get_path() ) ),
 			}
 		)
+
+		# usdTestInstall = usdTestEnv.Install( "$INSTALL_DIR/test/IECoreUSD", usdTestScripts )
+		# usdTestEnv.Alias( "testUSD", usdTestInstall )
+		# usdTestDataInstall = usdTestEnv.Install( "$INSTALL_DIR/test/IECoreUSD/data", usdTestData )
+		# usdTestEnv.Alias( "testUSD", usdTestDataInstall )
+
 		usdTestEnv["ENV"]["PXR_PLUGINPATH_NAME"] = testSdfPlugInfo
-		usdTest = usdTestEnv.Command( "contrib/IECoreUSD/test/IECoreUSD/results.txt", usdPythonModule, "$PYTHON $TEST_USD_SCRIPT --verbose" )
-		usdTestEnv.Depends( usdTest, [ corePythonModule + scenePythonModule + usdPythonModule + usdTestResourceInstall ] )
+		usdTest = usdTestEnv.Command( "contrib/IECoreUSD/test/IECoreUSD/results.txt", usdPythonModuleInstall, "$PYTHON $TEST_USD_SCRIPT --verbose" )
+		usdTestEnv.Depends( usdTest, [ corePythonModule + scenePythonModule + usdPythonModuleInstall + usdTestResourceInstall ] )
 		NoCache( usdTest )
 		usdTestEnv.Alias( "testUSD", usdTest )
 
