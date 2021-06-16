@@ -1031,5 +1031,28 @@ class TestFromHoudiniPointsConverter( IECoreHoudini.TestCase ) :
 		self.assertEqual( result["rest"].data.getInterpretation(), IECore.GeometricData.Interpretation.Point )
 		self.assertEqual( result["N"].data.getInterpretation(), IECore.GeometricData.Interpretation.Normal )
 
+	def testZeroPointsWithStringAttribs( self ):
+
+		obj = hou.node( "/obj" )
+		geo = obj.createNode( "geo", run_init_scripts=False )
+		null = geo.createNode( "null" )
+		pointAttr = geo.createNode( "attribcreate", exact_type_name=True )
+		pointAttr.setInput( 0, null )
+		pointAttr.parm( "name" ).set( "test_attribute" )
+		pointAttr.parm( "type" ).set( 3 )
+		pointAttr.parm( "string" ).set( "test_string" )
+
+		converter = IECoreHoudini.FromHoudiniPointsConverter( pointAttr )
+		self.assertTrue( converter.isInstanceOf( IECore.TypeId( IECoreHoudini.TypeId.FromHoudiniPointsConverter ) ) )
+
+		result = converter.convert()
+		self.assertTrue( result.isInstanceOf( IECoreScene.TypeId.PointsPrimitive ) )
+		self.assertTrue( result.arePrimitiveVariablesValid() )
+		self.assertEqual( result.numPoints, 0 )
+		self.assertEqual( result.keys(), [ "P", "test_attribute", "varmap" ] )
+		self.assertEqual( result["P"].data, IECore.V3fVectorData( [], IECore.GeometricData.Interpretation.Point ) )
+		self.assertEqual( result["test_attribute"].data, IECore.StringVectorData() )
+		self.assertEqual( result["test_attribute"].indices, None )
+
 if __name__ == "__main__":
 	unittest.main()

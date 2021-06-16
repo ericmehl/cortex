@@ -1,13 +1,24 @@
-10.2.0.0-a2
-===========
+﻿10.2.0.0
+========
 
 Improvements
 ------------
 
 - MurmurHash (#1150) :
   - Added support for calling `append()` with all types dispatched by `DataAlgo::dispatch()`.
+  - Added support for calling `append()` with custom types. This is achieved by providing a `murmurHashAppend( MurmurHash &h, const T& )` overload for the type (#1138).
   - Added Python binding for `append( BoolVectorData )`.
   - Added Python `__hash__` method to allow MurmurHash to be stored in sets and used in dictionary keys.
+  - Inlined the constructors (#1130).
+- Canceller : Added `elapsedTime()` method (#1159).
+- MeshAlgo : Removed unnecessary expansion of UV data in the following functions (#1161) :
+  - `calculateFaceArea()`
+  - `calculateFaceTextureArea()`
+- MeshPrimitive : Added cancellation support for `createPlane()` and `createSphere()` (#1161).
+- Object : Added `canceller` argument to `load()` static method. This is currently only respected by the `Primitive` class (#1161).
+- MeshAlgo/CurvesAlgo/PointsAlgo : Added `canceller` arguments to many functions (#1161).
+- AlembicScene/USDScene : Added cancellation support for the `readObject()` and `readSet()` methods (#1161).
+- IECoreUSD::DataAlgo : Added Python bindings for `role()` and `valueTypeName()` (#1155).
 
 Fixes
 -----
@@ -21,7 +32,9 @@ Fixes
 Breaking Changes
 ----------------
 
-- Changed type used to represent port number in DisplayDriverServer.
+- DisplayDriverServer : Changed type used to represent port number.
+- MeshAlgo : Removed `tolerance` and `throwErrors` parameters from `triangulate()` function (#1161).
+- SceneInterface : Added `canceller` arguments to some virtual functions (#1161).
 
 Build
 -----
@@ -29,24 +42,37 @@ Build
 - Fixed SConstruct for use with Python 3 (#1153).
 - Added `PYTHON_LIB_PATH` build option (#1153).
 
-10.2.0.0-a1
-===========
+10.1.8.1 (relative to 10.1.8.0)
+========
+
+- FromHoudiniPointsConverter : Revert behaviour #1157 (#1162)
+  - We continue to export empty PrimitiveVariables when there are no points, because downstream processing often requires the existance of P at a minimum.
+- FromHoudiniGeometryConverter : Fixed crash with empty string attribs ranges (#1162)
+
+10.1.8.0 (relative to 10.1.7.0)
+========
 
 Improvements
 ------------
 
-- MurmurHash :
-  - Added support for calling `append()` with custom types. This is achieved by providing a `murmurHashAppend( MurmurHash &h, const T& )` overload for the type (#1138).
-  - Inlined the constructors (#1130).
-
-10.1.x.x (relative to 10.1.7.0)
-========
+- IECoreUSD : Added SceneCacheDataAlgo and python bindings, primarily for convenience in the unittests (#1152)
 
 Fixes
 -----
 
-- USDScene : Fixed compilation with USD 19.11 (#1148).
-- SceneCacheFileFormat : Fixed compilation with GCC 9 (#1152).
+- DisplayDriverServer : Fixed type used in range check (#1149)
+- IECoreImage Tests : Fixed tests when using boost and OIIO on different paths (#1160)
+- USDScene :
+  - Fixed compilation with USD 19.11 (#1148)
+  - Fixed invalid USD Collection names (#1152)
+- USD SceneCache Support (#1152, #1158):
+  - Fixed compilation with GCC 9
+  - Fixed memory leak
+  - Fixed crash when loading CurvesPrimitives with invalid basis
+  - Fixed loading of SceneCache files as USD References and Sublayers
+    - Note this introduces a top-level IECoreUSD location to the stage hierarchy. Round-tripping through Cortex removes the extra location, but it will be visible when loading SceneCache files into applications (eg usdview)
+- AlembicScene : Fixed crash caused by non-scalar userProperties (#1156)
+- FromHoudiniPointsConverter : Fixed crash during attribute transfer for empty particle systems (#1157)
 
 10.1.7.0 (relative to 10.1.6.0)
 ========

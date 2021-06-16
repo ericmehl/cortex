@@ -77,20 +77,22 @@ using namespace IECoreAlembic;
 namespace
 {
 
-// todo: What about a compound property in the user properties?
-// todo:    I don't think they can be written by cortex but they might
-// todo:    exist in alembic files written by other applications.
-
 bool isAnimated( ICompoundProperty &compoundProperty )
 {
-	Abc::CompoundPropertyReaderPtr propertyReader = GetCompoundPropertyReaderPtr( compoundProperty );
-
 	for( size_t i = 0; i < compoundProperty.getNumProperties(); ++i )
 	{
-		ScalarPropertyReaderPtr scalarPropertyReader = propertyReader->getScalarProperty( i );
-		if ( !scalarPropertyReader->isConstant() )
+		const auto &header = compoundProperty.getPropertyHeader( i );
+		if( header.isScalar() )
 		{
-			return true;
+			if( !IScalarProperty( compoundProperty, header.getName() ).isConstant() )
+			{
+				return true;
+			}
+		}
+		else
+		{
+			// Other property types not yet supported by AlembicReader,
+			// so no need to check them.
 		}
 	}
 
@@ -335,8 +337,7 @@ class AlembicScene::AlembicReader : public AlembicIO
 			}
 
 			const AbcA::PropertyHeader *propertyHeader = userProperties.getPropertyHeader( name.string() );
-
-			return propertyHeader != nullptr;
+			return propertyHeader && propertyHeader->isScalar();
 		}
 
 		void attributeNames( NameList &attrs ) const
@@ -356,10 +357,13 @@ class AlembicScene::AlembicReader : public AlembicIO
 			}
 
 			attrs.reserve( userProperties.getNumProperties() );
-
 			for( size_t i = 0; i < userProperties.getNumProperties(); ++i )
 			{
-				attrs.push_back( InternedString( userProperties.getPropertyHeader( i ).getName() ) );
+				const auto &header = userProperties.getPropertyHeader( i );
+				if( header.isScalar() )
+				{
+					attrs.push_back( header.getName() );
+				}
 			}
 		}
 
@@ -1037,9 +1041,9 @@ class AlembicScene::AlembicReader : public AlembicIO
 			return m_objectReader->readTimeSampling()->getSampleTime( sampleIndex );
 		}
 
-		IECore::ConstObjectPtr objectAtSample( size_t sampleIndex ) const
+		IECore::ConstObjectPtr objectAtSample( size_t sampleIndex, const Canceller *canceller ) const
 		{
-			return m_objectReader ? m_objectReader->readSample( sampleIndex ) : nullptr;
+			return m_objectReader ? m_objectReader->readSample( sampleIndex, canceller ) : nullptr;
 		}
 
 		double objectSampleInterval( double time, size_t &floorIndex, size_t &ceilIndex ) const
@@ -1120,11 +1124,11 @@ class AlembicScene::AlembicReader : public AlembicIO
 			return setNames;
 		}
 
-		IECore::PathMatcher readSet( const Name &name, bool includeDescendantSets ) const
+		IECore::PathMatcher readSet( const Name &name, bool includeDescendantSets, const Canceller *canceller ) const
 		{
 			SceneInterface::Path prefix;
 			PathMatcher pathMatcher;
-			recurseReadSet( prefix, name, pathMatcher, includeDescendantSets );
+			recurseReadSet( prefix, name, pathMatcher, includeDescendantSets, canceller );
 
 			return pathMatcher;
 		}
@@ -1257,7 +1261,7 @@ class AlembicScene::AlembicReader : public AlembicIO
 			return ( time - f.second ) / ( c.second - f.second );
 		}
 
-		void recurseReadSet( const SceneInterface::Path &prefix, const Name &name, IECore::PathMatcher &pathMatcher, bool includeDescendantSets ) const
+		void recurseReadSet( const SceneInterface::Path &prefix, const Name &name, IECore::PathMatcher &pathMatcher, bool includeDescendantSets, const Canceller *canceller ) const
 		{
 			if( PathMatcherDataPtr pathMatcherData = readLocalSet( name ) )
 			{
@@ -1268,6 +1272,8 @@ class AlembicScene::AlembicReader : public AlembicIO
 			{
 				return;
 			}
+
+			Canceller::check( canceller );
 
 			NameList children;
 			childNames( children );
@@ -1281,7 +1287,7 @@ class AlembicScene::AlembicReader : public AlembicIO
 
 				ConstAlembicIOPtr c = child( childName, SceneInterface::ThrowIfMissing );
 
-				dynamic_cast<const AlembicReader*>( c.get() )->recurseReadSet( childPrefix, name, pathMatcher, includeDescendantSets );
+				dynamic_cast<const AlembicReader*>( c.get() )->recurseReadSet( childPrefix, name, pathMatcher, includeDescendantSets, canceller );
 			}
 		}
 
@@ -2079,9 +2085,9 @@ SceneInterface::NameList AlembicScene::setNames( bool includeDescendantSets ) co
 	return reader()->setNames( includeDescendantSets );
 }
 
-IECore::PathMatcher AlembicScene::readSet( const Name &name, bool includeDescendantSets ) const
+IECore::PathMatcher AlembicScene::readSet( const Name &name, bool includeDescendantSets, const Canceller *canceller ) const
 {
-	return reader()->readSet( name, includeDescendantSets );
+	return reader()->readSet( name, includeDescendantSets, canceller );
 }
 
 void AlembicScene::writeSet( const Name &name, const IECore::PathMatcher &set )
@@ -2119,9 +2125,9 @@ double AlembicScene::objectSampleInterval( double time, size_t &floorIndex, size
 	return reader()->objectSampleInterval( time, floorIndex, ceilIndex );
 }
 
-IECore::ConstObjectPtr AlembicScene::readObjectAtSample( size_t sampleIndex ) const
+IECore::ConstObjectPtr AlembicScene::readObjectAtSample( size_t sampleIndex, const Canceller *canceller ) const
 {
-	return reader()->objectAtSample( sampleIndex );
+	return reader()->objectAtSample( sampleIndex, canceller );
 }
 
 IECoreScene::PrimitiveVariableMap AlembicScene::readObjectPrimitiveVariables( const std::vector<IECore::InternedString> &primVarNames, double time ) const

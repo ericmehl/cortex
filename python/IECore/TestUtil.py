@@ -1,6 +1,6 @@
 ##########################################################################
 #
-#  Copyright (c) 2012, Image Engine Design Inc. All rights reserved.
+#  Copyright (c) 2020, Image Engine Design Inc. All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions are
@@ -32,23 +32,21 @@
 #
 ##########################################################################
 
-import unittest
+import os
 import sys
 
-import IECore
+class TestUtil:
+	@staticmethod
+	def inCI():
+		if "AZURE" in os.environ or "CI" in os.environ or os.getcwd() == "/Users/runner/work/cortex/cortex":
+			return True
 
-from USDSceneTest import USDSceneTest
-from SceneCacheFileFormatTest import SceneCacheFileFormatTest
-from DataAlgoTest import DataAlgoTest
+		return False
 
-unittest.TestProgram(
-	testRunner = unittest.TextTestRunner(
-		stream = IECore.CompoundStream(
-			[
-				sys.stderr,
-				open( "contrib/IECoreUSD/test/IECoreUSD/resultsPython.txt", "w" )
-			]
-		),
-		verbosity = 2
-	)
-)
+	@staticmethod
+	def platformMac():
+		return sys.platform == "darwin"
+
+	@staticmethod
+	def inMacCI():
+		return TestUtil.platformMac() and TestUtil.inCI()

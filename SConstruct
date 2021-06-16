@@ -54,10 +54,10 @@ EnsureSConsVersion( 3, 0, 2 )  # Substfile is a default builder as of 3.0.2
 SConsignFile()
 
 ieCoreMilestoneVersion = 10 # for announcing major milestones - may contain all of the below
-ieCoreMajorVersion = 2 # backwards-incompatible changes
+ieCoreMajorVersion = 3 # backwards-incompatible changes
 ieCoreMinorVersion = 0 # new backwards-compatible features
 ieCorePatchVersion = 0 # bug fixes
-ieCoreVersionSuffix = "a2" # used for alpha/beta releases. Example: "a1", "b2", etc.
+ieCoreVersionSuffix = "" # used for alpha/beta releases. Example: "a1", "b2", etc.
 
 ###########################################################################################
 # Command line options
@@ -1921,6 +1921,11 @@ if doConfigure :
 		# testing
 		imageTestEnv = testEnv.Clone()
 		imageTestEnv["ENV"]["PYTHONPATH"] = imageTestEnv["ENV"]["PYTHONPATH"] + ":python"
+
+		imageEnvLibPath = ":".join( imageEnvPrepends["LIBPATH"] )
+		imageLibs = imageTestEnv.subst( imageEnvLibPath )
+		imageTestLibs = imageTestEnv["ENV"][imageTestEnv["TEST_LIBRARY_PATH_ENV_VAR"]]
+		imageTestEnv["ENV"][imageTestEnv["TEST_LIBRARY_PATH_ENV_VAR"]] = ":".join( [imageLibs, imageTestLibs] )
 
 		imageTest = imageTestEnv.Command( "test/IECoreImage/results.txt", imagePythonModule, "$PYTHON $TEST_IMAGE_SCRIPT --verbose" )
 		NoCache( imageTest )

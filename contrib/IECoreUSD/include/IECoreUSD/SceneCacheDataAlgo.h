@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018, Image Engine Design Inc. All rights reserved.
+//  Copyright (c) 2021, Image Engine Design Inc. All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are
@@ -32,49 +32,37 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IECORESCENE_TAGSETALGO_H
-#define IECORESCENE_TAGSETALGO_H
+#ifndef IECOREUSD_SCENECACHEDATAALGO_H
+#define IECOREUSD_SCENECACHEDATAALGO_H
+
+#include "IECoreUSD/Export.h"
 
 #include "IECoreScene/SceneInterface.h"
 
-#include "IECore/Canceller.h"
+IECORE_PUSH_DEFAULT_VISIBILITY
+#include "pxr/base/tf/token.h"
+IECORE_POP_DEFAULT_VISIBILITY
 
-namespace IECoreScene
+// SceneCacheDataAlgo is suite of utilities used by SceneCacheData and SceneCacheFileFormat
+// classes responsible for loading Cortex Scene Cache Data into USD.
+// This header can be ignored in most other usage of IECoreUSD.
+
+namespace IECoreUSD
 {
-	namespace Private
-	{
-		void loadSetWalk( const IECoreScene::SceneInterface *scene, const IECore::InternedString &setName, IECore::PathMatcher &set, const SceneInterface::Path &path, const IECore::Canceller *canceller )
-		{
-			if( scene->hasTag( setName, SceneInterface::LocalTag ) )
-			{
-				set.addPath( path );
-			}
 
-			// Figure out if we need to recurse by querying descendant tags to see if they include
-			// anything we're interested in.
+namespace SceneCacheDataAlgo
+{
 
-			if( !scene->hasTag( setName, SceneInterface::DescendantTag ) )
-			{
-				return;
-			}
+IECOREUSD_API pxr::TfToken internalRootNameToken();
+IECOREUSD_API IECore::InternedString internalRootName();
+IECOREUSD_API IECoreScene::SceneInterface::Path fromInternalPath( const IECoreScene::SceneInterface::Path& scenePath );
+IECOREUSD_API IECoreScene::SceneInterface::Path toInternalPath( const IECoreScene::SceneInterface::Path& scenePath );
+IECOREUSD_API std::string fromInternalName( const IECore::InternedString& name );
+IECOREUSD_API std::string toInternalName( const IECore::InternedString& name );
 
-			IECore::Canceller::check( canceller );
+} // namespace SceneCacheDataAlgo
 
-			// Recurse to the children.
+} // namespace IECoreUSD
 
-			SceneInterface::NameList childNames;
-			scene->childNames( childNames );
-			SceneInterface::Path childPath( path );
-			childPath.push_back( IECore::InternedString() ); // room for the child name
-			for( SceneInterface::NameList::const_iterator it = childNames.begin(), eIt = childNames.end(); it != eIt; ++it )
-			{
-				ConstSceneInterfacePtr child = scene->child( *it );
-				childPath.back() = *it;
-				loadSetWalk( child.get(), setName, set, childPath, canceller );
-			}
-		}
-	} // private
 
-} // IECoreScene
-
-#endif //IECORESCENE_TAGSETALGO_H
+#endif // IECOREUSD_SCENECACHEDATAALGO_H
