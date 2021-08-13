@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2016, Image Engine Design Inc. All rights reserved.
+//  Copyright (c) 2021, Image Engine Design Inc. All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are
@@ -32,26 +32,42 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IECOREARNOLD_POINTSALGO_H
-#define IECOREARNOLD_POINTSALGO_H
+#ifndef IECOREUSD_SDFFILEFORMATSHAREDSCENEWRITERS_H
+#define IECOREUSD_SDFFILEFORMATSHAREDSCENEWRITERS_H
 
-#include "IECoreArnold/Export.h"
+#include "IECoreScene/SceneInterface.h"
 
-#include "IECoreScene/PointsPrimitive.h"
+using namespace IECoreScene;
 
-#include "ai.h"
-
-namespace IECoreArnold
+namespace IECoreUSD
 {
 
-namespace PointsAlgo
+// Class used to support per frame write when writing USD data from Houdini's Solaris context.
+// We open the scene cache file for writing on the first frame of writing and close it for the last frame of writing.
+class SdfFileFormatSharedSceneWriters
 {
+	public :
 
-IECOREARNOLD_API AtNode *convert( const IECoreScene::PointsPrimitive *points, AtUniverse *universe, const std::string &nodeName, const AtNode *parentNode = nullptr );
-IECOREARNOLD_API AtNode *convert( const std::vector<const IECoreScene::PointsPrimitive *> &samples, float motionStart, float motionEnd, AtUniverse *universe, const std::string &nodeName, const AtNode *parentNode = nullptr );
+		static SceneInterfacePtr get( const std::string &fileName );
 
-} // namespace PointsAlgo
+		/// Close a single file from the cache
+		static void close( const std::string &fileName );
 
-} // namespace IECoreArnold
+		/// Close all the scene from the cache
+		static void closeAll();
 
-#endif // IECOREARNOLD_POINTSALGO_H
+		/// Sets the limit for the number of scene interfaces that will
+		/// be cached internally.
+		static void setMaxScenes( size_t numScenes );
+		/// Returns the limit for the number of scene interfaces that will
+		/// be cached internally.
+		static size_t getMaxScenes();
+		/// Returns the number of scene interfaces currently in the cache.
+		static size_t numScenes();
+
+};
+
+} // namespace IECoreUSD
+
+#endif // IECOREUSD_SDFFILEFORMATSHAREDSCENEWRITERS_H
+
