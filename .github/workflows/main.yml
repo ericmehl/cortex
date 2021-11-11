@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - master
+      - main
       - 'RB-*'
   pull_request:
     branches:
-      - master
+      - main
       - 'RB-*'
   release:
       types: [published]
@@ -42,28 +42,28 @@ jobs:
           - name: linux-python2
             os: ubuntu-20.04
             buildType: RELEASE
-            containerImage: gafferhq/build:1.0.0
+            containerImage: ghcr.io/gafferhq/build/build:1.2.0
             options: .github/workflows/main/options.posix
             dependenciesURL: https://github.com/GafferHQ/dependencies/releases/download/3.0.0/gafferDependencies-3.0.0-Python2-linux.tar.gz
-            tests: testCore testCorePython testScene testImage testAlembic testUSD testVDB testArnold testAppleseed
+            tests: testCore testCorePython testScene testImage testAlembic testUSD testVDB testAppleseed
             publish: true
 
           - name: linux-python2-debug
             os: ubuntu-20.04
             buildType: DEBUG
-            containerImage: gafferhq/build:1.0.0
+            containerImage: ghcr.io/gafferhq/build/build:1.2.0
             options: .github/workflows/main/options.posix
             dependenciesURL: https://github.com/GafferHQ/dependencies/releases/download/3.0.0/gafferDependencies-3.0.0-Python2-linux.tar.gz
-            tests: testCore testCorePython testScene testImage testAlembic testUSD testVDB testArnold testAppleseed
+            tests: testCore testCorePython testScene testImage testAlembic testUSD testVDB testAppleseed
             publish: false
 
           - name: linux-python3
             os: ubuntu-20.04
             buildType: RELEASE
-            containerImage: gafferhq/build:1.0.0
+            containerImage: ghcr.io/gafferhq/build/build:1.2.0
             options: .github/workflows/main/options.posix
             dependenciesURL: https://github.com/GafferHQ/dependencies/releases/download/3.0.0/gafferDependencies-3.0.0-Python3-linux.tar.gz
-            tests: testCore testCorePython testScene testImage testAlembic testUSD testVDB testArnold testAppleseed
+            tests: testCore testCorePython testScene testImage testAlembic testUSD testVDB testAppleseed
             publish: true
 
           - name: macos-python2
@@ -72,8 +72,7 @@ jobs:
             containerImage:
             options: .github/workflows/main/options.posix
             dependenciesURL: https://github.com/GafferHQ/dependencies/releases/download/3.0.0/gafferDependencies-3.0.0-Python2-osx.tar.gz
-            # `testArnold` currently omitted due to problems loading `libai.dylib` on MacOS workers (possible SIP issue),
-            # and `testAppleseed` due to clashes with system image IO frameworks.
+            # `testAppleseed` currently omitted due to clashes with system image IO frameworks.
             tests: testCore testCorePython testScene testImage testAlembic testUSD testVDB
             publish: true
 
@@ -82,7 +81,7 @@ jobs:
             buildType: RELEASE
             options: .github/workflows/main/options.windows
             dependenciesURL: https://github.com/hypothetical-inc/gafferDependencies/releases/download/3.1.1/gafferDependencies-3.1.1-Python3-windows.zip
-            tests: testCore testCorePython testImage
+            tests: testCore testCorePython testScene testImage
             publish: false
 
     runs-on: ${{ matrix.os }}
@@ -133,11 +132,9 @@ jobs:
         echo CORTEX_DEPENDENCIES_HASH=`python config/installDependencies.py --archiveURL ${{ matrix.dependenciesURL }} --dependenciesDir ${{ env.CORTEX_BUILD_NAME }} --outputFormat "{archiveDigest}"` >> $GITHUB_ENV
       shell: bash
 
-    - name: Install renderers
+    - name: Install 3Delight
       run: |
-        python ./.github/workflows/main/installArnold.py
         python ./.github/workflows/main/installDelight.py
-        echo ARNOLD_ROOT=$GITHUB_WORKSPACE/arnoldRoot >> $GITHUB_ENV
         echo DELIGHT=$GITHUB_WORKSPACE/3delight >> $GITHUB_ENV
       shell: bash
 

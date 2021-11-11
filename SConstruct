@@ -49,6 +49,7 @@ import os
 import re
 import subprocess
 import platform
+import distutils
 
 EnsureSConsVersion( 3, 0, 2 )  # Substfile is a default builder as of 3.0.2
 SConsignFile()
@@ -454,13 +455,7 @@ o.Add(
 	"",
 )
 
-# Arnold options
-
-o.Add(
-	"ARNOLD_ROOT",
-	"The directory in which Arnold is installed.",
-	"",
-)
+# USD options
 
 o.Add(
 	"USD_INCLUDE_PATH",
@@ -589,7 +584,7 @@ o.Add(
 	"build process. This can be problematic if some of the environment is critical for "
 	"running the applications used during the build. This space separated list of environment "
 	"variables is imported to help overcome these problems.",
-	"",
+	"CI",
 )
 
 # Installation options
@@ -656,14 +651,6 @@ o.Add(
 )
 
 o.Add(
-	"INSTALL_ARNOLDLIB_NAME",
-	"The name under which to install the Arnold libraries. This "
-	"can be used to build and install the library for multiple "
-	"Arnold versions.",
-	"$INSTALL_PREFIX/lib/$IECORE_NAME",
-)
-
-o.Add(
 	"INSTALL_ALEMBICLIB_NAME",
 	"The name under which to install the Alembic libraries. This "
 	"can be used to build and install the library for multiple "
@@ -683,12 +670,6 @@ o.Add(
 	"INSTALL_PYTHON_DIR",
 	"The directory in which to install python modules.",
 	"$INSTALL_PREFIX/lib/python$PYTHON_VERSION/site-packages",
-)
-
-o.Add(
-	"INSTALL_ARNOLDPYTHON_DIR",
-	"The directory in which to install the Arnold python module.",
-	"$INSTALL_PYTHON_DIR",
 )
 
 o.Add(
@@ -767,12 +748,6 @@ o.Add(
 	"INSTALL_NUKEPLUGIN_NAME",
 	"The name under which to install nuke plugins.",
 	"$INSTALL_PREFIX/nuke/plugins/$IECORE_NAME",
-)
-
-o.Add(
-	"INSTALL_ARNOLDOUTPUTDRIVER_NAME",
-	"The name under which to install the arnold procedurals.",
-	"$INSTALL_PREFIX/arnoldOutputDrivers/$IECORE_NAME",
 )
 
 o.Add(
@@ -947,14 +922,6 @@ o.Add(
 	"but it can be useful to override this to run just the test for the functionality "
 	"you're working on.",
 	"test/IECoreNuke/All.py"
-)
-
-o.Add(
-	"TEST_ARNOLD_SCRIPT",
-	"The python script to run for the arnold tests. The default will run all the tests, "
-	"but it can be useful to override this to run just the test for the functionality "
-	"you're working on.",
-	"contrib/IECoreArnold/test/IECoreArnold/All.py"
 )
 
 o.Add(
@@ -1693,7 +1660,7 @@ def writePkgConfig( env, python_env ):
 
 coreEnv = env.Clone( IECORE_NAME="IECore" )
 coreEnv.Append( CXXFLAGS="-DIECore_EXPORTS" )
-if coreEnv["PLATFORM"] == "win32" : 
+if coreEnv["PLATFORM"] == "win32" :
 	coreEnv.Append( LIBS="version.lib" )
 corePythonEnv = pythonEnv.Clone( IECORE_NAME="IECorePython" )
 corePythonEnv.Append( CXXFLAGS="-DIECorePython_EXPORTS" )
@@ -2783,7 +2750,7 @@ houdiniEnvAppends = {
 		"HoudiniAPPS3",
 		## \todo: libIECoreHoudini should not use python.
 		## Remove it from the src and then remove this lib.
-		"boost_python" + env["BOOST_LIB_SUFFIX"],
+		"boost_python" + boostPythonLibSuffix,
 		"GLEW$GLEW_LIB_SUFFIX"
 	]
 }
@@ -2968,6 +2935,8 @@ if doConfigure :
 		)
 
 		houdiniTestEnv["ENV"]["PYTHONPATH"] += ":./python"
+		if distutils.version.LooseVersion( pythonEnv["PYTHON_VERSION"] ) > distutils.version.LooseVersion( "2.7" ) :
+			houdiniTestEnv["ENV"]["PYTHONHOME"] = houdiniTestEnv.subst( "$HOUDINI_ROOT/python" )
 		houdiniTestEnv["ENV"]["HOUDINI_DSO_PATH"] = "./plugins/houdini:&"
 		houdiniTestEnv["ENV"]["HOUDINI_OTLSCAN_PATH"] = "./plugins/houdini:&"
 
@@ -2984,164 +2953,6 @@ if doConfigure :
 			houdiniTestEnv.Depends( houdiniPythonTest, [ glLibrary, glPythonModule ] )
 		houdiniTestEnv.Alias( "testHoudini", houdiniPythonTest )
 		houdiniTestEnv.Alias( "testHoudiniPython", houdiniPythonTest )
-
-###########################################################################################
-# Build, install and test the IECoreArnold library and bindings
-###########################################################################################
-
-arnoldEnvSets = {
-	"IECORE_NAME" : "IECoreArnold"
-}
-
-arnoldEnv = env.Clone( **arnoldEnvSets )
-
-arnoldEnvAppends = {
-	"CXXFLAGS" : [
-		"-DIECoreArnold_EXPORTS",
-		"-DAI_ENABLE_DEPRECATION_WARNINGS",
-	] + formatSystemIncludes( arnoldEnv, "$ARNOLD_ROOT/include" ),
-	"CPPPATH" : [
-		"contrib/IECoreArnold/include",
-	],
-	"LIBPATH" : [
-		"$ARNOLD_ROOT/bin",
-	]
-}
-
-arnoldEnv.Append( **arnoldEnvAppends )
-
-# Windows houses ai.lib in the lib directory instead of bin
-if env["PLATFORM"] == "win32" :
-	arnoldEnv.Append(
-		LIBPATH = [
-			"$ARNOLD_ROOT/lib"
-		]
-	)
-
-arnoldPythonModuleEnv = pythonModuleEnv.Clone( **arnoldEnvSets )
-arnoldPythonModuleEnv.Append( **arnoldEnvAppends )
-arnoldPythonModuleEnv.Append(
-	CPPPATH = [
-		"contrib/IECoreArnold/include/bindings",
-	]
-)
-
-arnoldDriverEnv = arnoldEnv.Clone( IECORE_NAME = "ieOutputDriver" )
-arnoldDriverEnv["SHLIBPREFIX"] = ""
-arnoldDriverEnv["SHLIBSUFFIX"] = ".so" if env["PLATFORM"] != "win32" else ".dll"
-if env["PLATFORM"]=="darwin" :
-	# Symbols we need from `libai.dylib` will be resolved at runtime when Arnold
-	# loads the driver.
-	arnoldDriverEnv.Append( LINKFLAGS = "-Wl,-undefined,dynamic_lookup" )
-
-haveArnold = False
-
-if doConfigure :
-
-	# Since we only build shared libraries and not exectuables,
-	# we only need to check that shared libs will link correctly.
-	# This is necessary for arnold, which uses
-	# a run-time compatible, but link-time incompatbile libstdc++
-	# in some obscure studio setups. This approach succeeds because
-	# building a shared library doesn't require resolving the
-	# unresolved symbols of the libraries that it links to.
-	arnoldCheckEnv = arnoldEnv.Clone()
-	arnoldCheckEnv.Append( CXXFLAGS = [ "-fPIC" ] )
-	arnoldCheckEnv.Append( LINKFLAGS = [ "-shared" ] )
-	c = Configure( arnoldCheckEnv )
-
-	if not c.CheckLibWithHeader( "ai", "ai.h", "CXX" ) :
-
-		sys.stderr.write( "WARNING : no ai library found, not building IECoreArnold - check ARNOLD_ROOT.\n" )
-		c.Finish()
-
-	else :
-
-		haveArnold = True
-
-		arnoldSources = sorted( glob.glob( "contrib/IECoreArnold/src/IECoreArnold/*.cpp" ) )
-		arnoldHeaders = glob.glob( "contrib/IECoreArnold/include/IECoreArnold/*.h" ) + glob.glob( "contrib/IECoreArnold/include/IECoreArnold/*.inl" )
-		arnoldPythonSources = sorted( glob.glob( "contrib/IECoreArnold/src/IECoreArnold/bindings/*.cpp" ) )
-		arnoldPythonScripts = glob.glob( "contrib/IECoreArnold/python/IECoreArnold/*.py" )
-
-		c.Finish()
-
-		# we can't append this before configuring, as then it gets built as
-		# part of the configure process
-		arnoldEnv.Append(
-			LIBS = [
-				"ai",
-				os.path.basename( coreEnv.subst( "$INSTALL_LIB_NAME" ) ),
-				os.path.basename( sceneEnv.subst( "$INSTALL_LIB_NAME" ) ),
-			]
-		 )
-		arnoldPythonModuleEnv.Append( LIBS = os.path.basename( corePythonEnv.subst( "$INSTALL_PYTHONLIB_NAME" ) ) )
-
-		arnoldDriverEnv.Append(
-			LIBS = [
-				os.path.basename( coreEnv.subst( "$INSTALL_LIB_NAME" ) ),
-				os.path.basename( imageEnv.subst( "$INSTALL_LIB_NAME" ) ),
-				os.path.basename( arnoldEnv.subst( "$INSTALL_LIB_NAME" ) ),
-			]
-		)
-		if env["PLATFORM"] == "win32" :
-			arnoldDriverEnv.Append(
-				LIBS = [ "ai" ]
-			)
-
-		# library
-		arnoldLibrary = arnoldEnv.SharedLibrary( "lib/" + os.path.basename( arnoldEnv.subst( "$INSTALL_ARNOLDLIB_NAME" ) ), arnoldSources )
-		arnoldLibraryInstall = arnoldEnv.Install( os.path.dirname( arnoldEnv.subst( "$INSTALL_ARNOLDLIB_NAME" ) ), arnoldLibrary )
-		arnoldEnv.NoCache( arnoldLibraryInstall )
-		arnoldEnv.AddPostAction( arnoldLibraryInstall, lambda target, source, env : makeLibSymLinks( arnoldEnv ) )
-		arnoldEnv.Alias( "install", arnoldLibraryInstall )
-		arnoldEnv.Alias( "installArnold", arnoldLibraryInstall )
-		arnoldEnv.Alias( "installLib", [ arnoldLibraryInstall ] )
-
-		# headers
-		arnoldHeaderInstall = arnoldEnv.Install( "$INSTALL_HEADER_DIR/IECoreArnold", arnoldHeaders )
-		arnoldEnv.AddPostAction( "$INSTALL_HEADER_DIR/IECoreArnold", lambda target, source, env : makeSymLinks( arnoldEnv, arnoldEnv["INSTALL_HEADER_DIR"] ) )
-		arnoldEnv.Alias( "install", arnoldHeaderInstall )
-		arnoldEnv.Alias( "installArnold", arnoldHeaderInstall )
-
-		# python module
-		arnoldPythonModuleEnv.Append(
-			LIBS = [
-				os.path.basename( coreEnv.subst( "$INSTALL_LIB_NAME" ) ),
-				os.path.basename( arnoldEnv.subst( "$INSTALL_LIB_NAME" ) ),
-				os.path.basename( sceneEnv.subst( "$INSTALL_LIB_NAME" ) ),
-			]
-		)
-		arnoldPythonModule = arnoldPythonModuleEnv.SharedLibrary( "contrib/IECoreArnold/python/IECoreArnold/_IECoreArnold", arnoldPythonSources )
-		arnoldPythonModuleEnv.Depends( arnoldPythonModule, arnoldLibrary )
-
-		arnoldPythonModuleInstall = arnoldPythonModuleEnv.Install( "$INSTALL_ARNOLDPYTHON_DIR/IECoreArnold", arnoldPythonScripts + arnoldPythonModule )
-		arnoldPythonModuleEnv.AddPostAction( "$INSTALL_ARNOLDPYTHON_DIR/IECoreArnold", lambda target, source, env : makeSymLinks( arnoldPythonModuleEnv, arnoldPythonModuleEnv["INSTALL_ARNOLDPYTHON_DIR"] ) )
-		arnoldPythonModuleEnv.Alias( "install", arnoldPythonModuleInstall )
-		arnoldPythonModuleEnv.Alias( "installArnold", arnoldPythonModuleInstall )
-
-		# output driver
-		arnoldDriver = arnoldDriverEnv.SharedLibrary( "contrib/IECoreArnold/src/IECoreArnold/outputDriver/" + os.path.basename( arnoldDriverEnv.subst( "$INSTALL_ARNOLDOUTPUTDRIVER_NAME" ) ), "contrib/IECoreArnold/src/IECoreArnold/outputDriver/OutputDriver.cpp" )
-		arnoldDriverInstall = arnoldDriverEnv.Install( os.path.dirname( arnoldDriverEnv.subst( "$INSTALL_ARNOLDOUTPUTDRIVER_NAME" ) ), arnoldDriver )
-		arnoldDriverEnv.NoCache( arnoldDriverInstall )
-		arnoldDriverEnv.AddPostAction( arnoldDriverInstall, lambda target, source, env : makeLibSymLinks( arnoldDriverEnv, libNameVar="INSTALL_ARNOLDOUTPUTDRIVER_NAME" ) )
-		arnoldDriverEnv.Alias( "install", arnoldDriverInstall )
-		arnoldDriverEnv.Alias( "installArnold", arnoldDriverInstall )
-		arnoldDriverForTest = arnoldDriverEnv.Command( "contrib/IECoreArnold/test/IECoreArnold/plugins/ieOutputDriver.so", arnoldDriver, Copy( "$TARGET", "$SOURCE" ) )
-
-		Default( [ arnoldLibrary, arnoldPythonModule, arnoldDriver, arnoldDriverForTest ] )
-
-		# tests
-		arnoldTestEnv = testEnv.Clone()
-		arnoldTestEnv["ENV"]["PYTHONPATH"] += ":./contrib/IECoreArnold/python:" + arnoldEnv.subst( "$ARNOLD_ROOT/python" )
-		arnoldTestEnv["ENV"][testEnv["TEST_LIBRARY_PATH_ENV_VAR"]] += os.pathsep + arnoldEnv.subst( os.pathsep.join( arnoldPythonModuleEnv["LIBPATH"] ) )
-		arnoldTestEnv["ENV"]["PATH"] = arnoldEnv.subst( "$ARNOLD_ROOT/bin" ) + os.pathsep + arnoldTestEnv["ENV"]["PATH"]
-		arnoldTestEnv["ENV"]["ARNOLD_PLUGIN_PATH"] = os.pathsep.join( [ "contrib/IECoreArnold/test/IECoreArnold/plugins", "contrib/IECoreArnold/test/IECoreArnold/metadata" ] )
-		arnoldTest = arnoldTestEnv.Command( "contrib/IECoreArnold/test/IECoreArnold/results.txt", arnoldPythonModule, "$PYTHON $TEST_ARNOLD_SCRIPT --verbose" )
-		NoCache( arnoldTest )
-		arnoldTestEnv.Depends( arnoldTest, [ arnoldPythonModule + arnoldDriverForTest + arnoldLibrary ] )
-		arnoldTestEnv.Depends( arnoldTest, glob.glob( "contrib/IECoreArnold/test/IECoreArnold/*.py" ) )
-		arnoldTestEnv.Alias( "testArnold", arnoldTest )
 
 ###########################################################################################
 # Build, install and test the IECoreUSD library and bindings
