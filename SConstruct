@@ -1202,7 +1202,7 @@ else:
 				"-DNDEBUG",
 				"-MD",	# create multithreaded DLL
 				"-DBOOST_DISABLE_ASSERTS",
-				"-Ox",
+				"-O2",
 			]
 		)
 	elif env["BUILD_TYPE"] == "RELWITHDEBINFO" :
@@ -1214,6 +1214,7 @@ else:
 				"-bigobj",
 				"-DBOOST_DISABLE_ASSERTS",
 				"-Zi",
+				"-O2"
 			],
 			LINKFLAGS =
 			[
