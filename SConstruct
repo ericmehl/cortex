@@ -1198,6 +1198,7 @@ else:
 				"/wd4244",  # suppress warning about possible loss of data in type conversion
 				"/wd4305",  # suppress warning about conversion from double to float
 				"/wd4506",  # suppress warning about no definition for inline function. Needed for USD::Glf
+				"/wd4127",  # suppress warning "conditional expression is constant"  \todo: Remove this when Cortex moves to c++17 and use `if constexpr` in `datainterleaveop.cpp:182`
 				# suppress warning about exported class deriving from non-exported class.
 				# Microsoft states (in https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-2-c4275?view=msvc-170)
 				# that "C4275 can be ignored if you are deriving from a type in the
