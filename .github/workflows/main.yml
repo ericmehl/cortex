@@ -78,18 +78,18 @@ jobs:
             publish: true
 
           - name: windows-python3
-            os: windows-2016
+            os: windows-2019
             buildType: RELEASE
             options: .github/workflows/main/options.windows
-            dependenciesURL: https://github.com/hypothetical-inc/gafferDependencies/releases/download/3.1.1/gafferDependencies-3.1.1-Python3-windows.zip
+            dependenciesURL: https://github.com/hypothetical-inc/gafferDependencies/releases/download/6.0.0a2/gafferDependencies-6.0.0a2-Python3-windows.zip
             tests: testCore testCorePython testScene testImage testAlembic testUSD testVDB
             publish: false
 
           - name: windows-python3-debug
-            os: windows-2016
+            os: windows-2019
             buildType: RELWITHDEBINFO
             options: .github/workflows/main/options.windows
-            dependenciesURL: https://github.com/hypothetical-inc/gafferDependencies/releases/download/3.1.1/gafferDependencies-3.1.1-Python3-windows.zip
+            dependenciesURL: https://github.com/hypothetical-inc/gafferDependencies/releases/download/6.0.0a2/gafferDependencies-6.0.0a2-Python3-windows.zip
             tests: testCore testCorePython testScene testImage testAlembic testUSD testVDB
             publish: false
 
