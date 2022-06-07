@@ -33,8 +33,9 @@ PYTHONPATH = deps + "\\python"
 # Libs
 # ====
 
-BOOST_INCLUDE_PATH = includes + "\\boost-1_68"
-BOOST_LIB_SUFFIX = "-vc141-mt-x64-1_68"
+BOOST_INCLUDE_PATH = includes
+BOOST_LIB_SUFFIX = ""
+BOOST_LIB_PATH = libs
 
 OPENEXR_INCLUDE_PATH = includes
 OIIO_INCLUDE_PATH = includes + "\\OpenImageIO"

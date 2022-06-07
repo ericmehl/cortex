@@ -87,7 +87,7 @@ o.Add(
 o.Add(
 	"CXXFLAGS",
 	"The extra flags to pass to the C++ compiler during compilation.",
-	[ "-pipe", "-Wall" ] if Environment()["PLATFORM"] != "win32" else [],
+	[ "-pipe", "-Wall" ] if Environment()["PLATFORM"] != "win32" else ["/DBOOST_ALL_NO_LIB"],
 )
 
 o.Add(
