@@ -32,6 +32,8 @@ jobs:
           linux-python2,
           linux-python2-debug,
           linux-python3,
+          windows-python3,
+          windows-python3-debug
         ]
 
         include:
