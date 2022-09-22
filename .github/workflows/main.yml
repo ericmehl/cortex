@@ -194,7 +194,7 @@ jobs:
 
     - name: Publish Release
       run: |
-        ./.github/workflows/main/publishRelease.py --archive ${{ env.CORTEX_BUILD_NAME }}.${{ env.PACKAGE_EXTENSION }} --repo ${{ github.repository }} --releaseId ${{ env.CORTEX_GITHUB_RELEASEID }}
+        python ./.github/workflows/main/publishRelease.py --archive ${{ env.CORTEX_BUILD_NAME }}.${{ env.PACKAGE_EXTENSION }} --repo ${{ github.repository }} --releaseId ${{ env.CORTEX_GITHUB_RELEASEID }}
       if: matrix.publish && env.CORTEX_GITHUB_RELEASEID != ''
 
       env:
