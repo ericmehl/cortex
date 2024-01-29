@@ -117,11 +117,24 @@ void Camera::render( State *currentState ) const
 	}
 	else
 	{
-		float n = m_clippingPlanes[0];
-		glFrustum( n * m_frustum.min.x, n * m_frustum.max.x,
-			n * m_frustum.min.y, n * m_frustum.max.y,
-			m_clippingPlanes[0], m_clippingPlanes[1]
+		const float n = m_clippingPlanes[0];
+		const float f = m_clippingPlanes[1];
+		const float l = n * m_frustum.min.x;
+		const float r = n * m_frustum.max.x;
+		const float b = n * m_frustum.min.y;
+		const float t = n * m_frustum.max.y;
+
+		// Same as `glFrustum()` except adapted for our inverted frame buffer.
+		// It maps near = 1.0 and far = 0.0 instead of OpenGL's default of
+		// near = -1.0, far = 1.0.
+
+		M44f m(
+			( 2.f * n ) / ( r - l ), 0.f,                     0.f,                    0.f,
+			0.f,                     ( 2.f * n ) / ( t - b ), 0.f,                    0.f,
+			( r + l ) / ( r - l ),   ( t + b ) / ( t - b ),   n / ( n - f ),         -1.f,
+			0.f,                     0.f,                     ( n * f ) / ( n - f ),  0.f
 		);
+		glMultMatrixf( m.getValue() );
 
 	}
 	setModelViewMatrix();

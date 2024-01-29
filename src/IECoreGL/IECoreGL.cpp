@@ -346,6 +346,26 @@ void IECoreGL::init( bool glAlreadyInitialised )
 		sscanf( s, "%d.%d", &major, &minor );
 		g_glslVersion = major * 100 + minor;
 
+		GLint glMajorVersion;
+		glGetIntegerv( GL_MAJOR_VERSION, &glMajorVersion );
+		GLint glMinorVersion;
+		glGetIntegerv( GL_MINOR_VERSION, &glMinorVersion );
+		const int expandedVersion = glMajorVersion * 10 + glMinorVersion;
+		if( expandedVersion > 45 )
+		{
+			glClipControl( GL_LOWER_LEFT, GL_ZERO_TO_ONE );
+		}
+		else
+		{
+			IECore::msg(
+				IECore::Msg::Warning,
+				"IECoreGL",
+				"Using low precision depth buffer"
+			);
+			glDepthRange( 0, 1 );
+		}
+		glDepthFunc( GL_GREATER );
+
 #if defined( __APPLE__ )
 
 		if( !glAlreadyInitialised )

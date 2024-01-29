@@ -338,7 +338,7 @@ class Selector::Implementation : public IECore::RefCounted
 			glGetFloatv( GL_COLOR_CLEAR_VALUE, prevClearColor );
 			glGetFloatv( GL_DEPTH_CLEAR_VALUE, &prevClearDepth );
 			glClearColor( 0.0, 0.0, 0.0, 1.0 );
-			glClearDepth( 1.0 );
+			glClearDepth( 0.0 );  // Using inverted depth buffer
 			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 			glClearColor( prevClearColor[0], prevClearColor[1], prevClearColor[2], prevClearColor[3] );
 			glClearDepth( prevClearDepth );
@@ -476,7 +476,7 @@ class Selector::Implementation : public IECore::RefCounted
 			glGetFloatv( GL_COLOR_CLEAR_VALUE, prevClearColor );
 			glGetFloatv( GL_DEPTH_CLEAR_VALUE, &prevClearDepth );
 			glClearColor( 0.0, 0.0, 0.0, 1.0 );
-			glClearDepth( 1.0 );
+			glClearDepth( 0.0 );  // Using inverted depth buffer
 			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 			glClearColor( prevClearColor[0], prevClearColor[1], prevClearColor[2], prevClearColor[3] );
 			glClearDepth( prevClearDepth );

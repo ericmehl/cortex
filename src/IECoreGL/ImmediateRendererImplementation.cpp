@@ -99,7 +99,7 @@ void ImmediateRendererImplementation::worldBegin()
 
 	glViewport( 0, 0, width, height );
 	glClearColor( 0.0, 0.0, 0.0, 0.0 );
-	glClearDepth( 1.0 );
+	glClearDepth( 0.0 );  // Using inverted depth buffer
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 	m_stateStack.push( new State( *(m_stateStack.top()) ) );
