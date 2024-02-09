@@ -131,8 +131,8 @@ void Camera::render( State *currentState ) const
 		M44f m(
 			( 2.f * n ) / ( r - l ), 0.f,                     0.f,                    0.f,
 			0.f,                     ( 2.f * n ) / ( t - b ), 0.f,                    0.f,
-			( r + l ) / ( r - l ),   ( t + b ) / ( t - b ),   n / ( n - f ),         -1.f,
-			0.f,                     0.f,                     ( n * f ) / ( n - f ),  0.f
+			( r + l ) / ( r - l ),   ( t + b ) / ( t - b ),   n / ( f - n ),         -1.f,
+			0.f,                     0.f,                     ( n * f ) / ( f - n ),  0.f
 		);
 		glMultMatrixf( m.getValue() );
 
