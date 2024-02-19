@@ -110,10 +110,27 @@ void Camera::render( State *currentState ) const
 
 	if( m_orthographic )
 	{
-		glOrtho( m_frustum.min.x, m_frustum.max.x,
-			m_frustum.min.y, m_frustum.max.y,
-			m_clippingPlanes[0], m_clippingPlanes[1]
+		// Same as `glOrtho()` except adapted for our inverted depth buffer.
+		// It maps near = 1.0 and far = 0.0 instead of OpenGL's default of
+		// near = -1.0, far = 1.0.
+
+		const float n = m_clippingPlanes[0];
+		const float f = m_clippingPlanes[1];
+		const float l = n * m_frustum.min.x;
+		const float r = n * m_frustum.max.x;
+		const float b = n * m_frustum.min.y;
+		const float t = n * m_frustum.max.y;
+
+		// Same as `glFrustum()` except adapted for our inverted depth buffer.
+
+		M44f m(
+			2.f / ( r - l ),        0.f,                    0.f,            0.f,
+			0.f,                    2.f / ( t - b ),        0.f,            0.f,
+			0.f,                    0.f,                    1.f / ( f - n ), 0.f,
+			-( r + l ) / ( r - l ), -( t + b ) / ( t - b ), n / ( f - n ),  1.f
 		);
+		glMultMatrixf( m.getValue() );
+
 	}
 	else
 	{
@@ -124,9 +141,7 @@ void Camera::render( State *currentState ) const
 		const float b = n * m_frustum.min.y;
 		const float t = n * m_frustum.max.y;
 
-		// Same as `glFrustum()` except adapted for our inverted frame buffer.
-		// It maps near = 1.0 and far = 0.0 instead of OpenGL's default of
-		// near = -1.0, far = 1.0.
+		// Same as `glFrustum()` except adapted for our inverted depth buffer.
 
 		M44f m(
 			( 2.f * n ) / ( r - l ), 0.f,                     0.f,                    0.f,
