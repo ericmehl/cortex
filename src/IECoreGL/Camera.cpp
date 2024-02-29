@@ -121,13 +121,19 @@ void Camera::render( State *currentState ) const
 		const float b = n * m_frustum.min.y;
 		const float t = n * m_frustum.max.y;
 
-		// Same as `glFrustum()` except adapted for our inverted depth buffer.
+		// Same as `glOrtho()` except adapted for our inverted depth buffer.
 
+		// M44f m(
+		// 	2.f / ( r - l ),        0.f,                    0.f,            0.f,
+		// 	0.f,                    2.f / ( t - b ),        0.f,            0.f,
+		// 	0.f,                    0.f,                    -1.f / ( n - f ), 0.f,
+		// 	-( r + l ) / ( r - l ), -( t + b ) / ( t - b ), -f / ( n - f ),  1.f
+		// );
 		M44f m(
 			2.f / ( r - l ),        0.f,                    0.f,            0.f,
 			0.f,                    2.f / ( t - b ),        0.f,            0.f,
-			0.f,                    0.f,                    1.f / ( f - n ), 0.f,
-			-( r + l ) / ( r - l ), -( t + b ) / ( t - b ), n / ( f - n ),  1.f
+			0.f,                    0.f,                    -1.f / ( n - f ), 0.f,
+			-( r + l ) / ( r - l ), -( t + b ) / ( t - b ), -f / ( n - f ),  1.f
 		);
 		glMultMatrixf( m.getValue() );
 
