@@ -3137,7 +3137,7 @@ if doConfigure :
 			testSdfPlugInfo,
 			"contrib/IECoreUSD/resources/plugInfo.json",
 			SUBST_DICT = {
-				"!IECOREUSD_RELATIVE_LIB_FOLDER!" : os.path.join( os.getcwd(), "lib", os.path.basename( usdLibraryInstall[0].get_path() ) ).replace("\\", "\\\\"),
+				"!IECOREUSD_RELATIVE_LIB_FOLDER!" : usdLibraryInstall[0].get_path().replace( "\\", "\\\\" ),
 			}
 		)
 		usdTestEnv["ENV"]["PXR_PLUGINPATH_NAME"] = testSdfPlugInfo
