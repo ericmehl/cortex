@@ -118,36 +118,46 @@ const bool g_initialised = [] () {
 
 } ();
 
-}
+}  // namespace
 
 IE_CORE_DEFINEOBJECTTYPEDESCRIPTION( VDBObject );
 
 const unsigned int VDBObject::m_ioVersion = 0;
 
-VDBObject::VDBObject() : m_unmodifiedFromFile( false )
+VDBObject::VDBObject()
 {
 }
 
-VDBObject::VDBObject( const std::string &filename ) : m_unmodifiedFromFile( true )
+VDBObject::VDBObject( const std::string &filename , const int index )
 {
 	// note it seems fine for this file object to go out of scope
 	// and grids are still able to pull in additional grid data
-	m_lockedFile.reset( new LockedFile( new openvdb::io::File( filename ) ) );
+	auto lockedFile = std::make_shared<LockedFile>( new openvdb::io::File( filename ) );
 	// prevents a local tmp copy of the VDB for all file sizes
 	// if this is not set then  small VDB files are copied locally before reading
-	m_lockedFile->file->setCopyMaxBytes( 0 );
-	m_lockedFile->file->open(); //lazy loading of grid data is default enabling OPENVDB_DISABLE_DELAYED_LOAD will load the grids up front
+	lockedFile->file->setCopyMaxBytes( 0 );
+	lockedFile->file->open(); //lazy loading of grid data is default enabling OPENVDB_DISABLE_DELAYED_LOAD will load the grids up front
 
-	openvdb::GridPtrVecPtr grids = m_lockedFile->file->readAllGridMetadata();
-
-	if ( !grids )
+	for (auto it = lockedFile->file->beginName(), eIt = lockedFile->file->endName(); it != eIt; ++it )
 	{
-		throw IECore::Exception( "VDBObject::VDBObject - no grids " );
-	}
+		const size_t bracketPosition = it.gridName().find( '[' );
+		const std::string fieldName = it.gridName().substr( 0, bracketPosition );
 
-	for (auto grid : *grids)
-	{
-		m_grids[grid->getName()] = HashedGrid ( grid, m_lockedFile ) ;
+		int gridIndex;
+		try
+		{
+			gridIndex = bracketPosition != std::string::npos ? std::stoi( it.gridName().substr( bracketPosition + 1 ) ) : 0;
+		}
+		catch( std::exception &e )
+		{
+			/// \todo What now?
+			throw e;
+		}
+
+		if( gridIndex == index )
+		{
+			m_grids[fieldName] = HashedGrid( lockedFile->file->readGridMetadata( *it ), lockedFile, index );
+		}
 	}
 }
 
@@ -172,7 +182,7 @@ openvdb::GridBase::Ptr VDBObject::findGrid( const std::string &name )
 	auto it = m_grids.find( name );
 	if ( it != m_grids.end() )
 	{
-		m_unmodifiedFromFile = false;
+		/// \todo Need to flag that this grid is modified from file? Or is that part of `markedAsEdited()`?
 		it->second.markedAsEdited();
 		return it->second.grid();
 	}
@@ -185,15 +195,15 @@ std::vector<std::string> VDBObject::gridNames() const
 	std::vector<std::string> outputGridNames;
 	for( const auto &it : m_grids )
 	{
-		outputGridNames.push_back( it.first );
+		outputGridNames.push_back( it.second.gridName() );
 	}
 	return outputGridNames;
 }
 
 void VDBObject::insertGrid( openvdb::GridBase::Ptr grid )
 {
-	m_unmodifiedFromFile = false;
-	m_grids[grid->getName()] = HashedGrid( grid, nullptr );
+	/// \todo Need to do something other than inserting at index 0?
+	m_grids[grid->getName()] = HashedGrid( grid, nullptr, 0 );
 }
 
 void VDBObject::removeGrid( const std::string &name )
@@ -202,7 +212,6 @@ void VDBObject::removeGrid( const std::string &name )
 
 	if ( it != m_grids.end() )
 	{
-		m_unmodifiedFromFile = false;
 		m_grids.erase( it );
 	}
 }
@@ -346,14 +355,9 @@ void VDBObject::hash( IECore::MurmurHash &h ) const
 {
 	IECoreScene::VisibleRenderable::hash( h );
 
-	if( unmodifiedFromFile() && m_lockedFile && m_lockedFile->file)
-	{
-		h.append( m_lockedFile->file->filename() );
-		return;
-	}
-
 	for( const auto& it : m_grids )
 	{
+		h.append( it.second.fileName() );
 		h.append( it.second.hash() );
 	}
 }
@@ -370,8 +374,6 @@ void VDBObject::copyFrom( const IECore::Object *other, IECore::Object::CopyConte
 	}
 
 	m_grids = vdbObject->m_grids;
-	m_lockedFile = vdbObject->m_lockedFile;
-	m_unmodifiedFromFile = vdbObject->m_unmodifiedFromFile;
 }
 
 void VDBObject::save( IECore::Object::SaveContext *context ) const
@@ -398,21 +400,27 @@ void VDBObject::memoryUsage( IECore::Object::MemoryAccumulator &acc ) const
 
 bool VDBObject::unmodifiedFromFile() const
 {
-	return m_unmodifiedFromFile;
+	return !fileName().empty();
 }
 
 std::string VDBObject::fileName() const
 {
-	if ( m_lockedFile && m_lockedFile->file)
+	std::string commonFileName;
+	for( const auto &[fieldName, hashedGrid] : m_grids )
 	{
-		return m_lockedFile->file->filename();
-	}
-	else
-	{
-		return std::string();
-	}
-}
+		if( !hashedGrid.fileName().empty() && commonFileName.empty() )
+		{
+			commonFileName = hashedGrid.fileName();
+			continue;
+		}
 
+		if( hashedGrid.fileName().empty() || commonFileName != hashedGrid.fileName() )
+		{
+			return std::string();
+		}
+	}
+	return commonFileName;
+}
 
 openvdb::GridBase::Ptr VDBObject::HashedGrid::metadata() const
 {
@@ -426,10 +434,19 @@ openvdb::GridBase::Ptr VDBObject::HashedGrid::grid() const
 	{
 		std::lock_guard<std::recursive_mutex> l( tmp->mutex );
 
-		m_grid = tmp->file->readGrid( m_grid->getName() );
+		m_grid = tmp->file->readGrid( gridName() );
 		m_lockedFile.reset();
 	}
 	return m_grid;
+}
+
+std::string VDBObject::HashedGrid::fileName() const
+{
+	if( m_lockedFile )
+	{
+		return m_lockedFile->file->filename();
+	}
+	return std::string();
 }
 
 IECore::MurmurHash VDBObject::HashedGrid::hash() const
@@ -450,6 +467,12 @@ IECore::MurmurHash VDBObject::HashedGrid::hash() const
 		m_grid->writeBuffers( hashStream );
 		m_grid->writeTransform( hashStream );
 
+		h.append( m_index );
+		if( m_lockedFile )
+		{
+			h.append( m_lockedFile->file->filename() );
+		}
+
 		m_hash = h;
 		m_hashValid = true;
 	}
@@ -464,5 +487,11 @@ void VDBObject::HashedGrid::markedAsEdited()
 		m_grid = m_grid->deepCopyGrid();
 		m_hash = IECore::MurmurHash();
 		m_hashValid = false;
+		m_lockedFile.reset();
 	}
+}
+
+std::string VDBObject::HashedGrid::gridName() const
+{
+	return m_grid->getName() + "[" + std::to_string( m_index ) + "]";
 }

@@ -65,13 +65,16 @@ class IECOREVDB_API VDBObject : public IECoreScene::VisibleRenderable
 
 		VDBObject();
 
-		//! initialise VDBObject from a vdb file
-		VDBObject( const std::string &filename );
+		// Construct a `VDBObject` populated with one field per grid the the given index.
+		/// \todo Default index = 0?
+		VDBObject( const std::string &filename, const int index = 0 );
 
 		IE_CORE_DECLAREEXTENSIONOBJECT( IECoreVDB::VDBObject, VDBObjectTypeId, IECoreScene::VisibleRenderable );
 
 		void insertGrid( openvdb::GridBase::Ptr grid );
 		void removeGrid( const std::string &name );
+
+		/// \todo Add methods to add a field from a filename, grid name and index for USD compatibility.
 
 		openvdb::GridBase::ConstPtr findGrid( const std::string &name ) const;
 		openvdb::GridBase::Ptr findGrid( const std::string &name );
@@ -90,10 +93,11 @@ class IECOREVDB_API VDBObject : public IECoreScene::VisibleRenderable
 
 		//! Are the grids in this VDBObject unmodified from the vdb file in filename?
 		//! Useful for passing VDB objects to renders by filename instead of memory buffer
+		/// \todo Get rid of this and just test against `fileName().empty()`?
 		bool unmodifiedFromFile() const;
 
 		//! path to VDB file used to initialise this object
-		//! empty for procedurally generated VDBs
+		//! empty for procedurally generated VDBs or if not all grids come from the same file.
 		std::string fileName() const;
 
 	protected :
@@ -121,17 +125,21 @@ class IECOREVDB_API VDBObject : public IECoreScene::VisibleRenderable
 				{
 				}
 
-				HashedGrid( openvdb::GridBase::Ptr grid, std::shared_ptr<LockedFile> file )
+				HashedGrid( openvdb::GridBase::Ptr grid, std::shared_ptr<LockedFile> file, const int index )
 					: m_grid( grid ),
-					m_hashValid( false ), m_lockedFile( file )
+					m_hashValid( false ), m_lockedFile( file ), m_index( index )
 				{
 				}
 
+				/// \todo Why are all of these `const` and all members `mutable`?
+				std::string fileName() const;
 				IECore::MurmurHash hash() const;
 				openvdb::GridBase::Ptr metadata() const;
 				openvdb::GridBase::Ptr grid() const;
 				bool unmodifiedFromFile() const;
 				void markedAsEdited();
+				// Returns the unique grid name
+				std::string gridName() const;
 
 			private:
 				mutable openvdb::GridBase::Ptr m_grid;
@@ -139,14 +147,10 @@ class IECOREVDB_API VDBObject : public IECoreScene::VisibleRenderable
 				mutable IECore::MurmurHash m_hash;
 
 				mutable std::shared_ptr<LockedFile> m_lockedFile;
+				mutable int m_index;
 		};
 
 		std::unordered_map<std::string, HashedGrid> m_grids;
-
-		//! keep a pointer to the file object so grid topology & data can be loaded after
-		//! the initial read for metadata.
-		std::shared_ptr<LockedFile> m_lockedFile;
-		bool m_unmodifiedFromFile;
 
 };
 

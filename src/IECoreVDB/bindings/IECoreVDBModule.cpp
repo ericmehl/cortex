@@ -81,7 +81,7 @@ BOOST_PYTHON_MODULE( _IECoreVDB )
 #endif
 
 	IECorePython::RunTimeTypedClass<VDBObject>()
-		.def(init<const std::string &>())
+		.def(init<const std::string &, const int>())
 		.def(init<>())
 		.def("gridNames", &::gridNames)
 		.def("metadata", &VDBObject::metadata)

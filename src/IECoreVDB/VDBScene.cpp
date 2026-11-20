@@ -38,9 +38,14 @@
 
 #include "IECoreScene/SceneInterface.h"
 
+#include "IECore/MessageHandler.h"
 #include "IECore/SimpleTypedData.h"
 
 #include "openvdb/openvdb.h"
+
+#include "boost/algorithm/string/predicate.hpp"
+
+#include <optional>
 
 using namespace Imath;
 using namespace IECore;
@@ -51,7 +56,57 @@ using namespace openvdb;
 namespace
 {
 
+int childNameCount( const std::string &fileName )
+{
+	std::unordered_map<Name, int> gridCount;
+	/// \todo Not thread safe, is that a problem? Anybody and their brother can be accessing the file at this very moment.
+	auto vdbFile = std::make_unique<io::File>( fileName );
+	vdbFile->open();
+	for( auto it = vdbFile->beginName(), eIt = vdbFile->endName(); it != eIt; ++it )
+	{
+		const std::string gridName = it.gridName().substr( 0, it.gridName().find( '[' ) );
+
+		auto [gridIt, inserted] = gridCount.insert( { gridName, 1 } );
+		if( !inserted )
+		{
+			gridIt->second++;
+		}
+	}
+	vdbFile->close();
+
+	int maxGrids = -1;
+	for( const auto grid : gridCount )
+	{
+		maxGrids = std::max( grid.second, maxGrids );
+	}
+
+	return maxGrids;
+}
+
 const SceneInterface::Name g_objectName("vdb");
+
+SceneInterface::Name nameFromIndex( const int index )
+{
+	return InternedString( g_objectName.string() + ( index > 0 ? std::to_string( index ) : "" ) );
+}
+
+int indexFromName( const SceneInterface::Name &name )
+{
+	if( name == g_objectName )
+	{
+		return 0;
+	}
+
+	assert( name.string().size() > 3 );  // Shouldn't be here for any name that isn't `vdb$N`.
+	try
+	{
+		return std::stoi( name.c_str() + 3 );
+	}
+	catch(const std::exception &e )
+	{
+		throw InvalidArgumentException( fmt::format( "VDBScene : Invalid scene location name \"{}\". {}", name.string(), e.what() ) );
+	}
+}
 
 class VDBScene : public SceneInterface
 {
@@ -62,8 +117,8 @@ class VDBScene : public SceneInterface
 
 		VDBScene( const std::string &fileName, IndexedIO::OpenMode openMode )
 		: SceneInterface(),
-			m_rootData( new RootData(fileName) )
-
+			m_rootData( new RootData(fileName) ),
+			m_index( -1 )
 		{
 		}
 
@@ -80,7 +135,8 @@ class VDBScene : public SceneInterface
 		{
 			if ( m_parent )
 			{
-				return g_objectName;
+				assert( m_index > -1 );
+				return nameFromIndex( m_index );
 			}
 			else
 			{
@@ -94,7 +150,8 @@ class VDBScene : public SceneInterface
 
 			if ( m_parent )
 			{
-				p = { g_objectName };
+				assert( m_index > -1 );
+				p = { nameFromIndex( m_index ) };
 			}
 			else
 			{
@@ -108,7 +165,7 @@ class VDBScene : public SceneInterface
 
 		Imath::Box3d readBound( double time ) const override
 		{
-			const Imath::Box3f bound = rootData().m_vdbObject->bound();
+			const Imath::Box3f bound = m_vdbObject->bound();
 			return Imath::Box3d(bound.min, bound.max);
 		}
 
@@ -218,7 +275,7 @@ class VDBScene : public SceneInterface
 		{
 			if ( m_parent )
 			{
-				return rootData().m_vdbObject;
+				return m_vdbObject;
 			}
 			else
 			{
@@ -244,9 +301,9 @@ class VDBScene : public SceneInterface
 		/// Convenience method to determine if a child exists
 		bool hasChild( const Name &name ) const override
 		{
-			if ( !m_parent && name == g_objectName)
+			if ( !m_parent )
 			{
-				return true;
+				return indexFromName( name ) < rootData().m_numChildNames;
 			}
 
 			return false;
@@ -262,6 +319,10 @@ class VDBScene : public SceneInterface
 			else
 			{
 				childNames = { g_objectName };
+				for( int i = 1; i < rootData().m_numChildNames; ++i )
+				{
+					childNames.push_back( nameFromIndex( i ) );
+				}
 			}
 
 		}
@@ -273,9 +334,9 @@ class VDBScene : public SceneInterface
 		/// to the parent as it is written.
 		SceneInterfacePtr child( const Name &name, MissingBehaviour missingBehaviour = ThrowIfMissing ) override
 		{
-			if ( !m_parent && name == g_objectName)
+			if ( !m_parent && boost::algorithm::starts_with( name.string(), g_objectName.string() ) )
 			{
-				return new VDBScene( this );
+				return new VDBScene( this, indexFromName( name ) );
 			}
 			else if (missingBehaviour == ThrowIfMissing)
 			{
@@ -317,7 +378,7 @@ class VDBScene : public SceneInterface
 					return this;
 				}
 			}
-			else if ( path.size() == 1 && path[0] == g_objectName )
+			else if ( path.size() == 1 && boost::algorithm::starts_with( path[0].string(), g_objectName.string() ) )
 			{
 				if ( m_parent )
 				{
@@ -325,7 +386,7 @@ class VDBScene : public SceneInterface
 				}
 				else
 				{
-					return new VDBScene( this );
+					return new VDBScene( this, indexFromName( path[0] ) );
 				}
 			}
 			else
@@ -381,16 +442,19 @@ class VDBScene : public SceneInterface
 				if ( m_parent )
 				{
 					h.append( rootData().m_fileName );
+					h.append( m_index );
 				}
 			}
 			else if ( hashType == BoundHash )
 			{
 				h.append( rootData().m_fileName );
+				h.append( m_index );
 			}
 			else if ( hashType == HierarchyHash )
 			{
 				h.append( rootData().m_fileName );
 				h.append( m_parent == nullptr );
+				h.append( m_index );
 			}
 			else if ( hashType == AttributesHash )
 			{
@@ -401,8 +465,10 @@ class VDBScene : public SceneInterface
 
 	private :
 
-		VDBScene( VDBScene::Ptr parent )
-		: m_parent( parent )
+		VDBScene( VDBScene::Ptr parent, int index )
+		: m_parent( parent ),
+			m_index( index ),
+			m_vdbObject( new VDBObject( parent->fileName(), index ) )
 		{
 		}
 
@@ -412,13 +478,12 @@ class VDBScene : public SceneInterface
 		{
 			RootData(const std::string& filename)
 			: m_fileName(filename),
-			  m_vdbObject(new VDBObject(m_fileName) )
+			  m_numChildNames(::childNameCount(filename))
 			{
 			}
 
-
-			std::string m_fileName;
-			VDBObject::Ptr m_vdbObject;
+			const std::string m_fileName;
+			const int m_numChildNames;
 		};
 
 		RootData &rootData() const
@@ -431,6 +496,8 @@ class VDBScene : public SceneInterface
 
 		std::shared_ptr<RootData> m_rootData;
 		Ptr m_parent;
+		int m_index;
+		VDBObjectPtr m_vdbObject;
 
 };
 

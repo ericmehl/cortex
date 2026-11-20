@@ -191,7 +191,8 @@ bool writeVolume( const IECoreVDB::VDBObject *object, const pxr::UsdStagePtr &st
 		const TfToken gridNameToken( gridName );
 		auto fieldPath = path.AppendChild( gridNameToken );
 		auto fieldAsset = UsdVolOpenVDBAsset::Define( stage, fieldPath );
-		fieldAsset.CreateFilePathAttr().Set( SdfAssetPath( object->fileName() ), time );
+		/// \todo Commenting out the next line to get a build through. This needs updating.
+		// fieldAsset.CreateFilePathAttr().Set( SdfAssetPath( object->fileName() ), time );
 		fieldAsset.CreateFieldNameAttr().Set( gridNameToken );
 		fieldAsset.CreateFieldClassAttr().Set( gridClass( object->findGrid( gridName ).get() ) );
 		volume.CreateFieldRelationship( gridNameToken, fieldPath );

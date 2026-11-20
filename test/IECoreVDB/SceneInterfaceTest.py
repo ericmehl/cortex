@@ -46,7 +46,7 @@ from VDBTestCase import VDBTestCase
 class SceneInterfaceTest( VDBTestCase ) :
 	def setUp( self ) :
 		VDBTestCase.setUp( self )
-		self.sourcePath = os.path.join(self.dataDir, "smoke.vdb")
+		self.sourcePath = os.path.join(self.dataDir, "multiGrid.vdb")
 		self.sceneInterface = IECoreScene.SceneInterface.create( self.sourcePath, IECore.IndexedIO.OpenMode.Read )
 
 	def testCanLoading( self ) :
@@ -56,13 +56,15 @@ class SceneInterfaceTest( VDBTestCase ) :
 		self.assertEqual( self.sceneInterface.name(), "" )
 		self.assertEqual( self.sceneInterface.hasBound(), True )
 
-	def testSingleVDBChildName( self ) :
-		self.assertEqual( self.sceneInterface.childNames(), ["vdb"] )
+	def testVDBChildNames( self ) :
+		self.assertEqual( self.sceneInterface.childNames(), ["vdb", "vdb1"] )
 
 	def testCanGetChildVDBLocation( self ):
-		self.assertEqual( self.sceneInterface.hasChild("vdb"), True)
-		childSceneInterface = self.sceneInterface.child("vdb")
-		self.assertEqual( childSceneInterface.childNames(), [])
+		for child in [ "vdb", "vdb1" ] :
+			with self.subTest( child = child ) :
+				self.assertEqual( self.sceneInterface.hasChild(child), True)
+				childSceneInterface = self.sceneInterface.child(child)
+				self.assertEqual( childSceneInterface.childNames(), [])
 
 	def testIdentityTransform( self ) :
 		matrixArray = [
@@ -92,11 +94,13 @@ class SceneInterfaceTest( VDBTestCase ) :
 		self.assertEqual(bound, expectedBound)
 
 	def testCanReadVBObject( self ) :
-		vdb = self.sceneInterface.child( "vdb" )
-		vdbObject = vdb.readObject( 0.0 )
+		for child in [ "vdb", "vdb1" ] :
+			with self.subTest( child = child ) :
+				vdb = self.sceneInterface.child( child )
+				vdbObject = vdb.readObject( 0.0 )
 
-		self.assertTrue( isinstance( vdbObject, IECoreVDB.VDBObject ) )
-		self.assertEqual(vdbObject.gridNames(), ['density'])
+				self.assertTrue( isinstance( vdbObject, IECoreVDB.VDBObject ) )
+				self.assertEqual( vdbObject.gridNames(), ["density", "flame", "vel", "temperature" ] )
 
 
 	def testHashesDontChangeOverTime( self ) :
@@ -130,23 +134,46 @@ class SceneInterfaceTest( VDBTestCase ) :
 			self.sceneInterface.hash( IECoreScene.SceneInterface.HashType.HierarchyHash, 1.0 )
 		)
 
-	def testHashesForRootAndVDBLocation( self ):
-		childSceneInterface = self.sceneInterface.child("vdb")
+	def testHashesForRootAndSingleVDBLocation( self ):
+		sourcePath = os.path.join(self.dataDir, "smoke.vdb")
+		sceneInterface = IECoreScene.SceneInterface.create( sourcePath, IECore.IndexedIO.OpenMode.Read )
+
+		childSceneInterface = sceneInterface.child( "vdb" )
 
 		self.assertNotEqual(
-			self.sceneInterface.hash( IECoreScene.SceneInterface.HashType.ChildNamesHash, 0.0 ),
+			sceneInterface.hash( IECoreScene.SceneInterface.HashType.ChildNamesHash, 0.0 ),
 			childSceneInterface.hash( IECoreScene.SceneInterface.HashType.ChildNamesHash, 0.0 )
 		)
 
 		self.assertNotEqual(
-			self.sceneInterface.hash( IECoreScene.SceneInterface.HashType.ObjectHash, 0.0 ),
+			sceneInterface.hash( IECoreScene.SceneInterface.HashType.ObjectHash, 0.0 ),
 			childSceneInterface.hash( IECoreScene.SceneInterface.HashType.ObjectHash, 0.0 )
 		)
 
 		self.assertEqual(
-			self.sceneInterface.hash( IECoreScene.SceneInterface.HashType.BoundHash, 0.0 ),
+			sceneInterface.hash( IECoreScene.SceneInterface.HashType.BoundHash, 0.0 ),
 			childSceneInterface.hash( IECoreScene.SceneInterface.HashType.BoundHash, 0.0 )
 		)
+
+	def testHashesForRootAndMultipleVDBLocations( self ):
+		for child in [ "vdb", "vdb1" ] :
+			with self.subTest( child = child ) :
+				childSceneInterface = self.sceneInterface.child( child )
+
+				self.assertNotEqual(
+					self.sceneInterface.hash( IECoreScene.SceneInterface.HashType.ChildNamesHash, 0.0 ),
+					childSceneInterface.hash( IECoreScene.SceneInterface.HashType.ChildNamesHash, 0.0 )
+				)
+
+				self.assertNotEqual(
+					self.sceneInterface.hash( IECoreScene.SceneInterface.HashType.ObjectHash, 0.0 ),
+					childSceneInterface.hash( IECoreScene.SceneInterface.HashType.ObjectHash, 0.0 )
+				)
+
+				self.assertNotEqual(
+					self.sceneInterface.hash( IECoreScene.SceneInterface.HashType.BoundHash, 0.0 ),
+					childSceneInterface.hash( IECoreScene.SceneInterface.HashType.BoundHash, 0.0 )
+				)
 
 	def testHashesDifferentFiles( self ):
 		sourcePath = os.path.join(self.dataDir, "sphere.vdb")
@@ -213,4 +240,3 @@ class SceneInterfaceTest( VDBTestCase ) :
 
 if __name__ == "__main__":
 	unittest.main()
-
