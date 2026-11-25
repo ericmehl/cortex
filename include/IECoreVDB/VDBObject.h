@@ -76,6 +76,9 @@ class IECOREVDB_API VDBObject : public IECoreScene::VisibleRenderable
 
 		/// \todo Add methods to add a field from a filename, grid name and index for USD compatibility.
 
+		/// \todo I think these should be called `findField()` or similar. We need some way
+		/// of differentiating between the grid name like `density` (which may be used multiple times)
+		/// and the unique grid name that VDB uses to address grids like `density[0]`.
 		openvdb::GridBase::ConstPtr findGrid( const std::string &name ) const;
 		openvdb::GridBase::Ptr findGrid( const std::string &name );
 

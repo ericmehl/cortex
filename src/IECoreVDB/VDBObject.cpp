@@ -167,10 +167,14 @@ VDBObject::~VDBObject()
 
 openvdb::GridBase::ConstPtr VDBObject::findGrid( const std::string &name ) const
 {
-	auto it = m_grids.find(name);
-	if ( it != m_grids.end() )
+	/// \todo See header note about this changing to `findField()`.
+
+	for( const auto &[fieldName, hashedGrid] : m_grids )
 	{
-		return it->second.grid();
+		if( hashedGrid.gridName() == name )
+		{
+			return hashedGrid.grid();
+		}
 	}
 
 	return openvdb::GridBase::Ptr();
@@ -178,13 +182,15 @@ openvdb::GridBase::ConstPtr VDBObject::findGrid( const std::string &name ) const
 
 openvdb::GridBase::Ptr VDBObject::findGrid( const std::string &name )
 {
+	/// \todo See header note about this changing to `findField()`.
 
-	auto it = m_grids.find( name );
-	if ( it != m_grids.end() )
+	for( auto &[fieldName, hashedGrid] : m_grids )
 	{
-		/// \todo Need to flag that this grid is modified from file? Or is that part of `markedAsEdited()`?
-		it->second.markedAsEdited();
-		return it->second.grid();
+		if( hashedGrid.gridName() == name )
+		{
+			hashedGrid.markedAsEdited();
+			return hashedGrid.grid();
+		}
 	}
 
 	return openvdb::GridBase::Ptr();
